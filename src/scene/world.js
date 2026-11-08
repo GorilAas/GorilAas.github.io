@@ -589,6 +589,7 @@ export function readingQuality(on) {
 export function setZoom(on) {
   if (on && (state !== 'reading' || !isPortrait() || busy)) return;
   zoom.on = on; if (on) { zoom.x = readSide === 'left' ? -0.48 : 0.5; zoom.z = -0.06; }
+  readingQuality(on);
   if (state === 'reading') setPose(poseReading(), 0.7); renderLook();
 }
 export function setPixelRatio(p) {
@@ -601,7 +602,7 @@ export function watchPerf(now) {
   const ms = now - perf.last; perf.last = now;
   if (ms <= 0 || ms > 120 || document.hidden || state === 'loading') return;
   perf.acc += ms; perf.n++;
-  if (perf.n < 90) return;
+  if (perf.n < (LOW ? 45 : 90)) return;
   const avg = perf.acc / perf.n; perf.acc = 0; perf.n = 0;
   if (perf.cool > 0) { perf.cool--; return; }
   if (avg > 23 && PR > 1) { setPixelRatio(Math.max(1, PR - 0.25)); perf.cool = 2; }
@@ -673,14 +674,27 @@ export function animateLeaf(L, to, dur = 1.15, delay = 0) {
   L.k = 0.85;
   gsap.to(L, { t: to, duration: dur, delay, ease: 'power1.inOut', onStart: () => audio.flip(), onUpdate: () => { L.dirty = true; }, onComplete: () => { busy = Math.max(0, busy - 1); } });
 }
+let prefetching = false;
 function cullLeaves() {
   const moving = leaves.filter((L) => (L.t > 0.001 && L.t < 0.999) || gsap.isTweening(L) || (drag && drag.L === L));
+  const pending = [];
   for (const L of leaves) {
     const show = (L.i >= spread - 3 && L.i <= spread) || moving.some((M) => Math.abs(M.i - L.i) <= 1);
-    if (L.group.visible === show) continue;
-    L.group.visible = show;
-    if (show) { L.dirty = true; bumpShadows(2); } else L.group.children.forEach((m) => m.material.map && m.material.map.dispose());
+    const keep = show || (L.i >= spread - 5 && L.i <= spread + 2);
+    if (keep && !L.group.visible) pending.push(L);
+    if (L.group.visible !== show) {
+      L.group.visible = show;
+      if (show) { L.dirty = true; bumpShadows(2); }
+    }
+    if (!keep && L.resident) { L.resident = false; L.group.children.forEach((m) => m.material.map && m.material.map.dispose()); }
+    if (show) L.resident = true;
   }
+  if (prefetching) return;
+  const next = pending.find((L) => !L.resident);
+  if (!next) return;
+  prefetching = true;
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 120));
+  idle(() => { next.group.children.forEach((m) => m.material.map && renderer.initTexture(m.material.map)); next.resident = true; prefetching = false; });
 }
 export function warmup() {
   const queue = [], seen = new Set();
@@ -853,7 +867,7 @@ export function openBook() {
   setPose(poseReading(), 2.6, 'power2.inOut', 0.4);
   gsap.delayedCall(2.8, () => {
     state = 'reading'; spread = 1;
-    show('#pager'); show('#ribbons'); updateHUD(); showHint('read'); readingQuality(true); renderLook();
+    show('#pager'); show('#ribbons'); updateHUD(); showHint('read'); renderLook();
     $('#gl').focus({ preventScroll: true });
   });
 }
@@ -868,7 +882,7 @@ export function backToBook() {
   if (state !== 'away') return;
   state = 'returning'; hideHint(); hideTip(); renderLook();
   setPose(poseReading(), 1.6, 'power2.inOut');
-  gsap.delayedCall(1.6, () => { state = 'reading'; show('#pager'); show('#ribbons'); updateHUD(); readingQuality(true); renderLook(); $('#gl').focus({ preventScroll: true }); });
+  gsap.delayedCall(1.6, () => { state = 'reading'; show('#pager'); show('#ribbons'); updateHUD(); renderLook(); $('#gl').focus({ preventScroll: true }); });
 }
 export function overBook(cx, cy) { const p = hitPlane(cx, cy, BASE + 0.03); return !!p && Math.abs(p.x) < WC && Math.abs(p.z) < HC / 2; }
 
