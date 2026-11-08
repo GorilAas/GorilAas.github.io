@@ -600,7 +600,8 @@ export function frame(now) {
     coverGroup.rotation.z = a * Math.PI; coverGroup.position.y = lerp(PY_CLOSED, PY_OPEN, smooth(clamp(a, 0, 1)));
     const sk = Math.max(0.02, 1 - smooth(clamp(a * 1.6, 0, 1))); spine.scale.set(sk, 1, sk); spine.position.y = spine.userData.h * sk; spine.visible = sk > 0.03;
   }
-  for (const L of leaves) if (L.dirty) bendLeaf(L);
+  cullLeaves();
+  for (const L of leaves) if (L.dirty && L.group.visible) bendLeaf(L);
   animateDrolleries(t, dt);
   sea.update(t, 1, camPose.set(camState.px, camState.py, camState.pz));
   pointer.sx += (pointer.x - pointer.sx) * 0.05; pointer.sy += (pointer.y - pointer.sy) * 0.05;
@@ -629,6 +630,15 @@ export function animateLeaf(L, to, dur = 1.15, delay = 0) {
   gsap.killTweensOf(L);
   L.k = 0.85;
   gsap.to(L, { t: to, duration: dur, delay, ease: 'power1.inOut', onStart: () => audio.flip(), onUpdate: () => { L.dirty = true; }, onComplete: () => { busy = Math.max(0, busy - 1); } });
+}
+function cullLeaves() {
+  const moving = leaves.filter((L) => (L.t > 0.001 && L.t < 0.999) || gsap.isTweening(L) || (drag && drag.L === L));
+  for (const L of leaves) {
+    const show = (L.i >= spread - 3 && L.i <= spread) || moving.some((M) => Math.abs(M.i - L.i) <= 1);
+    if (L.group.visible === show) continue;
+    L.group.visible = show;
+    if (show) { L.dirty = true; bumpShadows(2); } else L.group.children.forEach((m) => m.material.map && m.material.map.dispose());
+  }
 }
 export function flipForward(delay = 0, dur) { if (spread >= LAST) return false; animateLeaf(leaves[spread - 1], 1, dur, delay); spread++; return true; }
 export function flipBack(delay = 0, dur) { if (spread <= 1) return false; spread--; animateLeaf(leaves[spread - 1], 0, dur, delay); return true; }

@@ -60,6 +60,7 @@ Quatro trechos recortados de gravações reais de páginas sendo viradas, normal
 ## Bibliotecas
 - **three.js** 0.170 (MIT), carregada do jsDelivr. https://threejs.org
 - **Decodificador Draco** do Google, distribuído com o three.js (Apache 2.0), em `assets/lib/draco/`.
+- **Transcodificador Basis Universal** da Binomial, distribuído com o three.js (Apache 2.0), em `assets/lib/basis/`. As texturas foram convertidas para KTX2 com o KTX-Software do Khronos Group.
 - **GSAP** 3.12 (licença padrão da GreenSock, gratuita), carregada do cdnjs. https://gsap.com
 
 ## Onde buscar mais material livre

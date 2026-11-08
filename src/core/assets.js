@@ -1,14 +1,24 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { F_BL, F_IN, F_SC, F_TX } from '../book/canvas.js';
 import { LOW, wait } from './env.js';
 import { DROLL, LEAVES } from '../scene/layout.js';
 
-export let DRACO;
+export let DRACO, KTX2;
+export function ktx2Loader() {
+  if (KTX2) return KTX2;
+  KTX2 = new KTX2Loader().setTranscoderPath('assets/lib/basis/');
+  const gl = document.createElement('canvas').getContext('webgl2');
+  const get = (n) => (gl ? gl.getExtension(n) : null);
+  KTX2.detectSupport({ extensions: { has: (n) => !!get(n), get } });
+  if (gl) gl.getExtension('WEBGL_lose_context')?.loseContext();
+  return KTX2;
+}
 export function gltfLoader() {
   if (!DRACO) { DRACO = new DRACOLoader(); DRACO.setDecoderPath('assets/lib/draco/'); }
-  return new GLTFLoader().setDRACOLoader(DRACO);
+  return new GLTFLoader().setDRACOLoader(DRACO).setKTX2Loader(ktx2Loader());
 }
 export const ASSETS = {};
 export async function loadFonts() {
@@ -18,14 +28,16 @@ export async function loadFonts() {
   await Promise.race([Promise.all([`30px "${F_TX}"`, `italic 30px "${F_TX}"`, `30px "${F_SC}"`].map((f) => document.fonts.load(f))), wait(5000)]);
 }
 export async function loadTextures() {
-  const tl = new THREE.TextureLoader();
+  const tl = new THREE.TextureLoader(), kl = ktx2Loader();
+  const file = (dir, f) => LOW ? (f === 'diffuse' && dir === 'wood-table-worn' ? `${dir}/diffuse.ktx2` : `${dir}/512/${f}.ktx2`) : `${dir}/${f}.${f === 'nor_gl' ? 'jpg' : 'ktx2'}`;
   const set = async (name, dir) => {
     try {
-      const [diff, nor, rough] = await Promise.all(['diffuse', 'nor_gl', 'rough'].map((f) => tl.loadAsync(`assets/textures/${dir}${LOW && dir !== 'wood-table-worn' ? '/512' : ''}/${f}.jpg`)));
+      const [diff, nor, rough] = await Promise.all(['diffuse', 'nor_gl', 'rough'].map((f) => { const u = `assets/textures/${file(dir, f)}`; return (u.endsWith('.ktx2') ? kl : tl).loadAsync(u); }));
       ASSETS[name] = { diff, nor, rough };
     } catch (e) {}
   };
-  await Promise.race([Promise.all([set('wood', 'wood-table-worn'), set('leather', 'brown-leather'), set('stone', 'castle-wall-slates'), set('plank', 'medieval-wood')]), wait(8000)]);
+  const cover = tl.loadAsync('assets/textures/brown-leather/cover.jpg').then((t) => { ASSETS.leatherImg = t.image; }).catch(() => {});
+  await Promise.race([Promise.all([cover, set('wood', 'wood-table-worn'), set('leather', 'brown-leather'), set('stone', 'castle-wall-slates'), set('plank', 'medieval-wood')]), wait(8000)]);
   if (ASSETS.leather) {
     const { diff, nor, rough } = ASSETS.leather;
     diff.colorSpace = THREE.SRGBColorSpace;

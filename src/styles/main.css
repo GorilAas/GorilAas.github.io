@@ -124,4 +124,5 @@ body.no-gl #gl, body.no-gl .hud:not(#topbar), body.no-gl #intro, body.no-gl .gra
   #lang .long{display:none}
   #lang .short{display:inline}
   #hint{bottom:5.4rem;white-space:normal;width:86vw;text-align:center}
+  #look{left:50%;bottom:auto;top:5.6rem;transform:translateX(-50%);font-size:.85rem;white-space:nowrap}
 }

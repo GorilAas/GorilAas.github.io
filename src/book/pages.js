@@ -244,8 +244,8 @@ export function paintCover() {
   const { m, r, b } = COVER.ctx, HH = 1365;
   for (const c of [m, r, b]) { c.setTransform(COVER.sx, 0, 0, COVER.sx, 0, 0); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.textAlign = 'left'; }
   m.fillStyle = '#3c2015'; m.fillRect(0, 0, 1000, HH);
-  m.save(); m.globalCompositeOperation = ASSETS.leather ? 'overlay' : 'multiply'; m.globalAlpha = 0.9;
-  m.drawImage(ASSETS.leather ? ASSETS.leather.diff.image : leather(), 0, 0, 1000, HH); m.restore();
+  m.save(); m.globalCompositeOperation = ASSETS.leatherImg ? 'overlay' : 'multiply'; m.globalAlpha = 0.9;
+  m.drawImage(ASSETS.leatherImg || leather(), 0, 0, 1000, HH); m.restore();
   const wear = m.createRadialGradient(500, 600, 200, 500, 680, 820); wear.addColorStop(0, 'rgba(120,70,40,.25)'); wear.addColorStop(1, 'rgba(0,0,0,.45)');
   m.fillStyle = wear; m.fillRect(0, 0, 1000, HH);
   r.fillStyle = 'rgb(0,215,0)'; r.fillRect(0, 0, 1000, HH);

@@ -53,6 +53,7 @@ assets/
   models/                  modelos 3D (GLB)
   textures/                madeira, couro e pedra (subpasta 512/: versões leves para celular)
   lib/draco/               decodificador dos modelos comprimidos
+  lib/basis/               decodificador das texturas KTX2
 ```
 
 ## Publicar no GitHub Pages
