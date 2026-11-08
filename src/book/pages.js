@@ -141,7 +141,7 @@ export const PAGES = {
   relics(ctx) {
     const { x0, x1 } = margins('R'), w = x1 - x0, cw = (w - 56) / 2;
     const y0 = head(ctx, B().chapter[4], B().titles.relics, x0, 190, w) + 26;
-    const cols = [[0, 2], [1, 3]], ends = [];
+    const cols = B().relics.length > 3 ? [[0, 2], [1, 3]] : [[0], [1, 2]], ends = [];
     cols.forEach((idx, c) => {
       const x = x0 + c * (cw + 56); let y = y0;
       for (const i of idx) {

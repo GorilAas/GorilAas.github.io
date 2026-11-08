@@ -17,7 +17,7 @@ export const PROPS = [
   { id: 'food_apple_01', dir: 'food-apple', pos: [1.66, 0, -1.06], rot: [0, 40, 8], scale: 3 },
   { id: 'treasure_chest', dir: 'treasure-chest', pos: [-1.82, 0, -2.0], rot: [0, 24, 0], scale: 0.85 },
   { id: 'met_penbox', dir: 'met-penbox', pos: [1.48, 0.014, -0.02], rot: [0, 86, 0], scale: 3 },
-  { id: 'met_helmet', dir: 'met-helmet', pos: [-0.72, 0, -1.9], rot: [0, 18, 0], scale: 3 }
+  { id: 'met_helmet', dir: 'met-helmet', pos: [-0.72, 0, -1.9], rot: [0, 18, 0], scale: 3, stand: 0.5 }
 ];
 export const WALL = [
   { key: 'relief', dir: 'met-agnus-dei', pos: [1.74, 1.02], rot: [0, 0, 0], size: 2.02 },

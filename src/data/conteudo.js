@@ -3,7 +3,6 @@ export const SITE = {
   fullName: 'Guilherme A. B. Borges',
   nick: 'GorilaAs',
   year: 'MMXXVI',
-  motto: 'Nulla dies sine linea',
   email: '',
   links: [
     { label: 'GitHub', url: 'https://github.com/GorilAas' },
@@ -62,7 +61,6 @@ export const TEXT = {
       silence: 'Em silêncio',
       mute: 'Silenciar a música',
       unmute: 'Tocar a música',
-      credit: 'Cantiga de Santa Maria 100, século XIII',
       performer: 'Intérprete',
       pd: 'domínio público',
       sealMouse: 'Clicai no selo de cera para abrir o livro',
@@ -108,7 +106,7 @@ export const TEXT = {
       titles: { about: 'Do autor', sheet: 'Ficha do autor', works: 'Das obras', games: 'Bestiário dos jogos', pastimes: 'Dos folguedos', relics: 'Das relíquias', poem: 'Dos versos', colophon: 'Corvo mensageiro' },
       about: [
         'Saibam quantos este livro virem que eu, Guilherme A. B. Borges, a quem nos jogos chamam GorilaAs, conto vinte e cinco anos e sirvo no ofício de desenvolvedor full stack júnior.',
-        'Lavro sistemas com Java, TypeScript e Angular, guardo os dados em Oracle e MySQL e conheço bem os caminhos do Sankhya. Fora do ofício prefiro o sossego da casa e as visitas a lugares antigos, onde o passado ainda fala.',
+        'Lavro sistemas com Java, TypeScript e Angular, guardo os dados em Oracle e MySQL e trilho os caminhos do Sankhya. Fora do ofício prefiro o sossego da casa e as visitas a lugares antigos, onde o passado ainda fala.',
         'Por muito tempo fui mais poeta que outra cousa. Hoje escrevo menos, mas um dos meus versos ficou guardado no capítulo sexto.'
       ],
       aboutNote: 'O mais se achará nas folhas seguintes.',
@@ -130,11 +128,11 @@ export const TEXT = {
         { kind: 'ARPG sombrio', text: 'Masmorras sem fim e saque sem conta. Aqui o autor perde as noites de boa vontade.', note: 'Em jornada' },
         { kind: 'Estratégia em tempo real', text: 'Onde ergue castelos, junta exércitos e reescreve a história a seu gosto.', note: 'Em campanha' },
         { kind: 'RPG medieval de batalhas', text: 'Cavalgar à frente de centenas de lanças e tomar os castelos de Calradia.', note: 'Em campanha' },
-        { kind: 'RPG do porvir', text: 'Jogo que o autor amou acabar, e cuja continuação aguarda como quem espera nova cruzada.', note: 'Acabado, com saudade' },
+        { kind: 'RPG do porvir', text: 'Jogo que o autor terminou com gosto, e cuja continuação aguarda como quem espera nova cruzada.', note: 'Acabado, com saudade' },
         { kind: 'Mundo aberto', text: 'Comprado na pré-venda e esperado com grande ânsia.', note: 'Por vir' }
       ],
       pastimes: [
-        { title: 'Escrever versos', text: 'Por muito tempo meu maior folguedo. Hoje escrevo menos, mas a pena nunca secou de todo.' },
+        { title: 'Escrever versos', text: 'Por muito tempo meu maior folguedo, e a pena nunca secou de todo.' },
         { title: 'Da música', text: 'Música medieval, eletrônica e lofi, às vezes tudo na mesma noite.' },
         { title: 'Lugares históricos', text: 'Ruínas, museus e cidades velhas, onde o passado ainda se pode tocar.' },
         { title: 'O sossego da casa', text: 'Bons jogos, boas séries e pouca pressa.' }
@@ -142,17 +140,15 @@ export const TEXT = {
       relics: [
         { title: 'Séries de reis e guerras', items: ['Game of Thrones', 'A Casa do Dragão', 'O Cavaleiro dos Sete Reinos', 'Vikings', 'Irmãos de Guerra', 'Mestres do Ar'] },
         { title: 'Séries do porvir', items: ['Fundação', 'Cyberpunk: Mercenários'] },
-        { title: 'Do teatro de sombras', items: ['Ciência', 'Ficção científica', 'História'] },
-        { title: 'Dos jograis', items: ['Música medieval', 'Eletrônica', 'Lofi'] }
+        { title: 'Do teatro de sombras', items: ['Documentários de ciência', 'Ficção científica', 'Filmes de história'] }
       ],
       relicsNote: 'Teatro de sombras é como os copistas chamariam aos filmes.',
       poemNote: '',
-      contact: ['Se este livro vos trouxe até aqui,', 'mandai um corvo. Respondo a propostas,', 'a convites para party', 'e a quem souber de bons jogos.'],
+      contact: ['Se este livro vos trouxe até aqui,', 'mandai um corvo. Respondo a propostas,', 'a convites para jogar em companhia', 'e a quem souber de bons jogos.'],
       findMe: 'Onde me achar',
       colophonRubric: 'Colofão',
       explicit: ['Aqui se acaba o livro de {full},', 'escrito no ano do Senhor de {year}.'],
-      finis: 'Fechai o livro com cuidado.',
-      exlibris: 'Ex libris'
+      finis: 'Fechai o livro com cuidado.'
     }
   },
 
@@ -166,7 +162,6 @@ export const TEXT = {
       silence: 'Silenced',
       mute: 'Silence the music',
       unmute: 'Play the music',
-      credit: 'Cantiga de Santa Maria 100, 13th century',
       performer: 'Performed by',
       pd: 'public domain',
       sealMouse: 'Click the wax seal to open the book',
@@ -212,7 +207,7 @@ export const TEXT = {
       titles: { about: 'Of the Author', sheet: 'The Author’s Sheet', works: 'Of the Works', games: 'Bestiary of Games', pastimes: 'Of Pastimes', relics: 'Of Relics', poem: 'Of Verses', colophon: 'The Raven Messenger' },
       about: [
         'Know all ye who look upon this book that I, Guilherme A. B. Borges, whom the games call GorilaAs, have lived five and twenty years and serve in the craft of junior full stack developer.',
-        'I build systems with Java, TypeScript and Angular, keep my records in Oracle and MySQL, and know well the paths of Sankhya. Beyond my craft I prefer the quiet of home and journeys to ancient places, where the past still speaketh.',
+        'I build systems with Java, TypeScript and Angular, keep my records in Oracle and MySQL, and walk the paths of Sankhya. Beyond my craft I prefer the quiet of home and journeys to ancient places, where the past still speaketh.',
         'For a long while I was more poet than aught else. Now I write less, yet one of my verses is kept in the sixth chapter.'
       ],
       aboutNote: 'The rest shall be found in the leaves that follow.',
@@ -234,11 +229,11 @@ export const TEXT = {
         { kind: 'Dark ARPG', text: 'Endless dungeons and loot beyond counting. Here the author gladly loseth his nights.', note: 'On the road' },
         { kind: 'Real-time strategy', text: 'Where he raiseth castles, gathereth armies and rewriteth history to his liking.', note: 'On campaign' },
         { kind: 'Medieval battle RPG', text: 'To ride before hundreds of lances and take the castles of Calradia.', note: 'On campaign' },
-        { kind: 'RPG of the future', text: 'A game the author loved to finish, whose sequel he awaiteth as one awaiteth a new crusade.', note: 'Finished, and missed' },
+        { kind: 'RPG of the future', text: 'A game the author finished with delight, whose sequel he awaiteth as one awaiteth a new crusade.', note: 'Finished, and missed' },
         { kind: 'Open world', text: 'Bought before its release and awaited most eagerly.', note: 'Yet to come' }
       ],
       pastimes: [
-        { title: 'Writing verse', text: 'For a long while my greatest pastime. Now I write less, but the quill never ran wholly dry.' },
+        { title: 'Writing verse', text: 'For a long while my greatest pastime, and the quill never ran wholly dry.' },
         { title: 'Of music', text: 'Medieval music, electronic and lofi, sometimes all in one night.' },
         { title: 'Places of history', text: 'Ruins, museums and old towns, where the past may still be touched.' },
         { title: 'The quiet of home', text: 'Good games, good series and little haste.' }
@@ -246,17 +241,15 @@ export const TEXT = {
       relics: [
         { title: 'Series of kings and wars', items: ['Game of Thrones', 'House of the Dragon', 'A Knight of the Seven Kingdoms', 'Vikings', 'Band of Brothers', 'Masters of the Air'] },
         { title: 'Series of the future', items: ['Foundation', 'Cyberpunk: Edgerunners'] },
-        { title: 'Of the shadow theatre', items: ['Science', 'Science fiction', 'History'] },
-        { title: 'Of the minstrels', items: ['Medieval music', 'Electronic', 'Lofi'] }
+        { title: 'Of the shadow theatre', items: ['Science documentaries', 'Science fiction', 'Films of history'] }
       ],
       relicsNote: 'Shadow theatre is what the scribes would have called films.',
       poemNote: 'Set down in the author’s own tongue.',
-      contact: ['If this book hath brought thee hither,', 'send a raven. I answer offers,', 'invitations to a party', 'and all who know of good games.'],
+      contact: ['If this book hath brought thee hither,', 'send a raven. I answer offers,', 'invitations to play in company', 'and all who know of good games.'],
       findMe: 'Where to find me',
       colophonRubric: 'Colophon',
       explicit: ['Here endeth the book of {full},', 'written in the year of our Lord {year}.'],
-      finis: 'Close the book with care.',
-      exlibris: 'Ex libris'
+      finis: 'Close the book with care.'
     }
   },
 
@@ -270,7 +263,6 @@ export const TEXT = {
       silence: 'En silencio',
       mute: 'Silenciar la música',
       unmute: 'Tocar la música',
-      credit: 'Cantiga de Santa María 100, siglo XIII',
       performer: 'Intérprete',
       pd: 'dominio público',
       sealMouse: 'Haced clic en el sello de cera para abrir el libro',
@@ -316,7 +308,7 @@ export const TEXT = {
       titles: { about: 'Del autor', sheet: 'Ficha del autor', works: 'De las obras', games: 'Bestiario de los juegos', pastimes: 'De los pasatiempos', relics: 'De las reliquias', poem: 'De los versos', colophon: 'El cuervo mensajero' },
       about: [
         'Sepan cuantos este libro vieren que yo, Guilherme A. B. Borges, a quien en los juegos llaman GorilaAs, cuento veinticinco años y sirvo en el oficio de desarrollador full stack júnior.',
-        'Labro sistemas con Java, TypeScript y Angular, guardo los datos en Oracle y MySQL y conozco bien los caminos de Sankhya. Fuera del oficio prefiero el sosiego de la casa y las visitas a lugares antiguos, donde el pasado aún habla.',
+        'Labro sistemas con Java, TypeScript y Angular, guardo los datos en Oracle y MySQL y recorro los caminos de Sankhya. Fuera del oficio prefiero el sosiego de la casa y las visitas a lugares antiguos, donde el pasado aún habla.',
         'Por mucho tiempo fui más poeta que otra cosa. Hoy escribo menos, pero uno de mis versos quedó guardado en el capítulo sexto.'
       ],
       aboutNote: 'Lo demás se hallará en las hojas siguientes.',
@@ -338,11 +330,11 @@ export const TEXT = {
         { kind: 'ARPG sombrío', text: 'Mazmorras sin fin y botín sin cuenta. Aquí el autor pierde las noches de buena gana.', note: 'En jornada' },
         { kind: 'Estrategia en tiempo real', text: 'Donde alza castillos, junta ejércitos y reescribe la historia a su gusto.', note: 'En campaña' },
         { kind: 'RPG medieval de batallas', text: 'Cabalgar al frente de cientos de lanzas y tomar los castillos de Calradia.', note: 'En campaña' },
-        { kind: 'RPG del porvenir', text: 'Juego que el autor amó acabar, y cuya continuación aguarda como quien espera nueva cruzada.', note: 'Acabado, con añoranza' },
+        { kind: 'RPG del porvenir', text: 'Juego que el autor terminó con gusto, y cuya continuación aguarda como quien espera nueva cruzada.', note: 'Acabado, con añoranza' },
         { kind: 'Mundo abierto', text: 'Comprado en preventa y esperado con gran ansia.', note: 'Por venir' }
       ],
       pastimes: [
-        { title: 'Escribir versos', text: 'Por mucho tiempo mi mayor pasatiempo. Hoy escribo menos, pero la pluma nunca se secó del todo.' },
+        { title: 'Escribir versos', text: 'Por mucho tiempo mi mayor pasatiempo, y la pluma nunca se secó del todo.' },
         { title: 'De la música', text: 'Música medieval, electrónica y lofi, a veces todo en la misma noche.' },
         { title: 'Lugares históricos', text: 'Ruinas, museos y ciudades viejas, donde el pasado aún se puede tocar.' },
         { title: 'El sosiego de la casa', text: 'Buenos juegos, buenas series y poca prisa.' }
@@ -350,17 +342,15 @@ export const TEXT = {
       relics: [
         { title: 'Series de reyes y guerras', items: ['Juego de Tronos', 'La Casa del Dragón', 'El caballero de los Siete Reinos', 'Vikingos', 'Hermanos de sangre', 'Los amos del aire'] },
         { title: 'Series del porvenir', items: ['Fundación', 'Cyberpunk: Edgerunners'] },
-        { title: 'Del teatro de sombras', items: ['Ciencia', 'Ciencia ficción', 'Historia'] },
-        { title: 'De los juglares', items: ['Música medieval', 'Electrónica', 'Lofi'] }
+        { title: 'Del teatro de sombras', items: ['Documentales de ciencia', 'Ciencia ficción', 'Películas de historia'] }
       ],
       relicsNote: 'Teatro de sombras es como los copistas llamarían a las películas.',
       poemNote: 'Versos guardados en la lengua del autor.',
-      contact: ['Si este libro os trajo hasta aquí,', 'enviad un cuervo. Respondo a propuestas,', 'a invitaciones de party', 'y a quien sepa de buenos juegos.'],
+      contact: ['Si este libro os trajo hasta aquí,', 'enviad un cuervo. Respondo a propuestas,', 'a invitaciones para jugar en compañía', 'y a quien sepa de buenos juegos.'],
       findMe: 'Dónde hallarme',
       colophonRubric: 'Colofón',
       explicit: ['Aquí se acaba el libro de {full},', 'escrito en el año del Señor de {year}.'],
-      finis: 'Cerrad el libro con cuidado.',
-      exlibris: 'Ex libris'
+      finis: 'Cerrad el libro con cuidado.'
     }
   }
 };

@@ -851,6 +851,12 @@ export function buildLooseLeaves() {
     interactive(L.name, [m], () => ACTIONS.leaf(m));
   }
 }
+function helmetStand(x, z, h) {
+  const prof = [[0, 0], [0.25, 0], [0.26, 0.012], [0.255, 0.04], [0.2, 0.05], [0.12, 0.07], [0.07, 0.1], [0.05, 0.14], [0.045, h - 0.12], [0.06, h - 0.1], [0.045, h - 0.085], [0.07, h - 0.05], [0.075, h - 0.02], [0.05, h + 0.005], [0, h + 0.01]].map(([a, b]) => new THREE.Vector2(a, b));
+  const pk = ASSETS.plank, map = pk && pk.diff.clone(); if (map) { map.wrapS = map.wrapT = THREE.RepeatWrapping; map.repeat.set(1, 0.6); map.needsUpdate = true; }
+  const m = new THREE.Mesh(new THREE.LatheGeometry(prof, 40), new THREE.MeshStandardMaterial({ map, color: map ? 0x6a4a32 : 0x3a2414, roughness: 0.55 }));
+  m.position.set(x, 0, z); m.castShadow = true; m.receiveShadow = true; freeze(m); return m;
+}
 export function loadModels() {
   const loader = gltfLoader(), jobs = [];
   let wallDone = null;
@@ -880,6 +886,10 @@ export function loadModels() {
       const box = new THREE.Box3().setFromObject(g, true);
       g.position.set(P.pos[0], P.pos[1] - box.min.y, P.pos[2]);
       scene.add(g); freezeKids(g); settle(g);
+      if (P.stand) {
+        const c = new THREE.Box3().setFromObject(g, true).getCenter(new THREE.Vector3());
+        scene.add(helmetStand(c.x, c.z, P.stand)); g.position.y += P.stand - 0.07; g.updateMatrixWorld(true); bumpShadows(3);
+      }
       const key = { ornate_medieval_dagger: 'dagger', brass_goblets: 'goblet', food_apple_01: 'apple', treasure_chest: 'chest', met_penbox: 'penbox', met_helmet: 'helmet' }[P.id];
       if (key === 'chest') {
         const lid = root.getObjectByName('treasure_chest_lid');
