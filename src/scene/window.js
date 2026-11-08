@@ -1,6 +1,16 @@
 import * as THREE from 'three';
-import { ASSETS } from '../core/assets.js';
+import { ASSETS, gltfLoader } from '../core/assets.js';
 import { mk } from '../book/canvas.js';
+import { audio } from '../audio/audio.js';
+import { gsap } from '../core/env.js';
+
+export const VIEWS = [
+  { key: 'sea', light: 0x8fa6d6, li: 1.6, sea: true, models: [
+    { dir: 'coastal-cliff', at: [-3.7, -38], height: 2.3, rightEnd: true, ang: -2.2, flip: 0, tint: 0x4a566e },
+    { dir: 'modular-fort', keep: 'modular_fort_01_tower_round', at: [-4.3, -37.1], rot: 0.4, height: 1.0, tint: 0x4a5266, onCliff: true },
+    { dir: 'dutch-ship', at: [-1.5, -24], rot: -1.35, width: 1.7, tint: 0x262d3c, ship: true }
+  ] }
+];
 
 export const WIN = { x: 0.62, z: -2.45, depth: 0.42, sill: 0.34, w: 0.9, spring: 1.02 };
 const SEA_Y = -1.6;
@@ -75,38 +85,37 @@ void main(){
   });
 }
 
-function silhouette(w, h, draw) {
-  const c = mk(w, h), x = c.getContext('2d'); x.fillStyle = '#fff'; draw(x); const t = new THREE.CanvasTexture(c); return t;
-}
-
-function headland() {
-  const tex = silhouette(1024, 256, (x) => {
-    x.beginPath(); x.moveTo(0, 256); x.lineTo(0, 120);
-    x.bezierCurveTo(90, 96, 160, 70, 250, 78); x.bezierCurveTo(320, 84, 360, 104, 420, 120);
-    x.bezierCurveTo(500, 140, 560, 180, 640, 214); x.bezierCurveTo(700, 238, 780, 248, 1024, 252); x.lineTo(1024, 256); x.closePath(); x.fill();
-    x.fillRect(196, 40, 22, 42); x.beginPath(); x.moveTo(192, 42); x.lineTo(207, 22); x.lineTo(222, 42); x.fill();
-    x.fillRect(226, 60, 34, 22); for (let i = 0; i < 4; i++) x.fillRect(226 + i * 9, 54, 5, 7);
-  });
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(9, 2.4), new THREE.MeshBasicMaterial({ color: 0x080d16, alphaMap: tex, transparent: true, depthWrite: false, fog: false }));
-  m.position.set(-2.8, SEA_Y + 1.2 - 0.04, -40); return m;
-}
-
-function ship() {
-  const tex = silhouette(256, 256, (x) => {
-    x.beginPath(); x.moveTo(30, 186); x.quadraticCurveTo(128, 214, 226, 186); x.lineTo(236, 160); x.lineTo(206, 166); x.lineTo(50, 166); x.lineTo(18, 158); x.closePath(); x.fill();
-    x.fillRect(196, 146, 34, 20); x.fillRect(26, 140, 30, 26);
-    x.fillRect(124, 40, 5, 128);
-    x.beginPath(); x.moveTo(84, 58); x.quadraticCurveTo(128, 50, 172, 58); x.quadraticCurveTo(180, 100, 168, 140); x.quadraticCurveTo(128, 132, 88, 140); x.quadraticCurveTo(76, 100, 84, 58); x.fill();
-    x.fillRect(116, 30, 20, 12);
-    x.lineWidth = 2; x.strokeStyle = '#fff'; x.beginPath(); x.moveTo(126, 42); x.lineTo(20, 156); x.moveTo(128, 42); x.lineTo(232, 150); x.stroke();
-  });
-  const g = new THREE.Group();
-  const hull = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshBasicMaterial({ color: 0x060a12, alphaMap: tex, transparent: true, depthWrite: false, fog: false }));
-  hull.position.y = 0.36; g.add(hull);
+function shipLamp() {
   const lc = mk(64, 64), lx = lc.getContext('2d'), gr = lx.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,220,150,1)'); gr.addColorStop(0.25, 'rgba(255,170,80,.5)'); gr.addColorStop(1, 'rgba(255,140,60,0)'); lx.fillStyle = gr; lx.fillRect(0, 0, 64, 64);
-  const lamp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(lc), color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
-  lamp.scale.setScalar(0.09); lamp.position.set(0.42, 0.3, 0.01); g.add(lamp);
-  g.position.set(-1.5, SEA_Y, -30); return g;
+  return new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(lc), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
+}
+
+const cliffRay = new THREE.Raycaster();
+function place(root, M, parent) {
+  if (M.keep) {
+    const k = root.getObjectByName(M.keep), drop = [];
+    if (k) { root.traverse((o) => { if (o.isMesh) { let p = o; while (p && p !== k) p = p.parent; if (!p) drop.push(o); } }); drop.forEach((o) => o.parent.remove(o)); }
+  }
+  root.traverse((o) => {
+    if (!o.isMesh) return; const m = o.material;
+    o.material = new THREE.MeshBasicMaterial({ map: m.map, color: M.tint, fog: false, transparent: m.transparent, alphaTest: m.alphaTest || (m.alphaMap || m.transparent ? 0.4 : 0), side: m.side });
+  });
+  const g = new THREE.Group(), inner = new THREE.Group(); inner.add(root); g.add(inner);
+  let b = new THREE.Box3().setFromObject(root, true); const sz = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
+  root.position.set(-c.x, -b.min.y, -c.z);
+  g.scale.setScalar(M.width ? M.width / Math.max(sz.x, sz.z) : M.height / sz.y);
+  g.rotation.y = M.rot || 0; g.position.set(M.at[0], SEA_Y, M.at[1]);
+  if (M.rightEnd) {
+    const half = Math.max(sz.x, sz.z) * g.scale.x / 2;
+    g.rotation.y = M.ang + (sz.x >= sz.z ? 0 : Math.PI / 2) + (M.flip ? Math.PI : 0);
+    g.position.x = M.at[0] + Math.cos(M.ang) * half; g.position.z = M.at[1] - Math.sin(M.ang) * half; g.position.y = SEA_Y - M.height * 0.32;
+  }
+  g.userData.size = sz;
+  if (M.ship) g.position.y = SEA_Y - 0.08 * g.scale.x * sz.y;
+  if (M.onCliff) {
+    const cliff = parent.children[0]; if (cliff) { parent.updateMatrixWorld(true); cliffRay.set(new THREE.Vector3(M.at[0], 50, M.at[1]), new THREE.Vector3(0, -1, 0)); const h = cliffRay.intersectObject(cliff, true)[0]; g.position.y = h ? h.point.y - 0.05 : new THREE.Box3().setFromObject(cliff, true).max.y - 0.2; }
+  }
+  g.userData.y = g.position.y; parent.add(g); return g;
 }
 
 function archShape(w, spring, sill) {
@@ -166,30 +175,57 @@ export function buildWindow(scene) {
   const pk = texSet(ASSETS.plank, 1, 1);
   const wood = pk ? new THREE.MeshStandardMaterial({ map: pk[0], normalMap: pk[1], roughnessMap: pk[2], roughness: 1, color: 0x8a6a4c }) : new THREE.MeshStandardMaterial({ color: 0x3b2716, roughness: 0.8 });
   const iron = new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: 0.55, metalness: 0.7 });
-  room.add(shutter(-1, wood, iron), shutter(1, wood, iron));
+  const shutters = [shutter(-1, wood, iron), shutter(1, wood, iron)]; room.add(...shutters);
+  const pick = new THREE.Mesh(new THREE.PlaneGeometry(WIN.w, WIN.spring - WIN.sill + WIN.w * 0.87), new THREE.MeshBasicMaterial()); pick.visible = false;
+  pick.position.set(WIN.x, (WIN.sill + WIN.spring + WIN.w * 0.87) / 2, WIN.z - WIN.depth / 2); room.add(pick);
 
   const out = new THREE.Group(); scene.add(out);
   const sky = new THREE.Mesh(new THREE.SphereGeometry(22, 48, 24), skyMaterial(uniforms)); sky.position.set(WIN.x, 0, -26); sky.renderOrder = 10; out.add(sky);
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(70, 46, 1, 1), seaMaterial(uniforms)); sea.rotation.x = -Math.PI / 2; sea.position.set(WIN.x, SEA_Y, -3 - 23); sea.renderOrder = 9; out.add(sea);
-  out.add(headland());
-  const boat = ship(); out.add(boat);
+  const lamp = shipLamp(); let boat = null;
+  const loader = gltfLoader();
+  for (const v of VIEWS) {
+    v.group = new THREE.Group(); v.group.visible = false; out.add(v.group); v.ready = !v.optional;
+    v.models.reduce((p, M) => p.then(() => loader.loadAsync(`assets/models/${M.dir}/model.glb`)).then((gltf) => {
+      const o = place(gltf.scene, M, v.group); v.ready = true;
+      if (M.ship) { boat = o; const z = o.userData.size, lx = z.x >= z.z; boat.add(lamp); lamp.position.set(lx ? -z.x * 0.42 : 0, z.y * 0.36, lx ? 0 : -z.z * 0.42); lamp.scale.setScalar(0.07 / boat.scale.x); }
+    }).catch(() => {}), Promise.resolve());
+  }
 
   const moonLight = new THREE.SpotLight(0x8fa6d6, 0, 6, 0.5, 1, 1.2);
   moonLight.position.set(WIN.x - 0.35, WIN.spring + 0.5, WIN.z - 1.2); moonLight.target.position.set(WIN.x + 0.25, 0, WIN.z + 1.3);
   scene.add(moonLight, moonLight.target);
 
   const moonAt = new THREE.Vector3();
+  let cur = VIEWS[0], swapping = false;
+  function apply(v) {
+    cur = v; for (const w of VIEWS) w.group.visible = w === v;
+    sea.visible = v.sea; moonLight.color.setHex(v.light);
+  }
+  apply(cur);
   return {
+    pickables: [pick, ...shutters],
+    get view() { return cur.key; },
+    cycle() {
+      if (swapping) return Promise.resolve(); swapping = true;
+      const list = VIEWS.filter((w) => w.ready), next = list[(list.indexOf(cur) + 1) % list.length], open = shutters.map((s) => s.rotation.y);
+      audio.creak(true);
+      const tl = gsap.timeline({ onComplete: () => { swapping = false; } });
+      shutters.forEach((s, i) => tl.to(s.rotation, { y: 0, duration: 0.55, ease: 'power2.in' }, 0));
+      tl.call(() => { audio.thud(); apply(next); }).to({}, { duration: 0.25 });
+      shutters.forEach((s, i) => tl.to(s.rotation, { y: open[i], duration: 0.9, ease: 'power2.out' }, i ? '<' : '>'));
+      tl.call(() => audio.creak(), [], '<');
+      return tl.then();
+    },
     update(t, on, cam) {
       uniforms.uTime.value = t;
       if (cam) {
         const D = cam.z - WIN.z, yh = cam.y - D * (cam.y - SEA_Y) / (cam.z + 49), apex = WIN.spring + WIN.w * 0.866 - 0.14;
-        moonAt.set(WIN.x + 0.07, yh + 0.48 * Math.max(0.1, apex - yh), WIN.z).sub(cam).normalize();
+        moonAt.set(WIN.x + 0.17, yh + 0.5 * Math.max(0.1, apex - yh), WIN.z).sub(cam).normalize();
         uniforms.uMoon.value.copy(moonAt);
       }
-      boat.position.x = -4.6 + ((t * 0.025) % 5.4);
-      boat.rotation.z = Math.sin(t * 0.8) * 0.035; boat.position.y = SEA_Y + Math.sin(t * 0.6) * 0.02;
-      moonLight.intensity = 1.6 * on;
+      if (boat) { boat.position.x = -3.6 + ((t * 0.02) % 4.6); boat.rotation.z = Math.sin(t * 0.8) * 0.03; boat.rotation.x = Math.sin(t * 0.6 + 1) * 0.02; boat.position.y = boat.userData.y + Math.sin(t * 0.6) * 0.02; }
+      moonLight.intensity = cur.li * on;
     }
   };
 }

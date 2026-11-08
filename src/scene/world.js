@@ -12,8 +12,8 @@ import { $, ANISO, CALM, gsap, setAniso, SMALL } from '../core/env.js';
 import { T } from '../core/i18n.js';
 import { clamp, lerp, smooth, vnoise } from '../core/math.js';
 import { SITE } from '../data/conteudo.js';
-import { DROLL, LEAVES, PROPS } from './layout.js';
-import { buildWindow } from './window.js';
+import { DROLL, LEAVES, PROPS, WALL } from './layout.js';
+import { buildWindow, WIN } from './window.js';
 import { featherTexture, glowTexture, leatherSideTexture, pageEdgeTexture, sealTextures, woodTextures } from './materials.js';
 import { hide, hideHint, hintKey, renderLook, show, showHint, updateHUD } from '../ui/hud.js';
 
@@ -165,6 +165,7 @@ export const ACTIONS = {
     return gsap.timeline({ onUpdate: () => { sc.quaternion.copy(q0).multiply(tq.setFromAxisAngle(axis, st.a)); sc.position.copy(p0).addScaledVector(dir, -st.a * 0.045); bump(); } })
       .to(st, { a: Math.PI * 1.6, duration: 0.9, ease: 'power2.out' }).to(st, { a: 0, duration: 1.1, ease: 'power2.inOut' }, '+=0.4');
   },
+  wall: (g) => { audio.knock(); const r = g.rotation.z; g.matrixAutoUpdate = true; return gsap.timeline({ onUpdate: bump, onComplete: () => { g.rotation.z = r; g.updateMatrix(); g.matrixAutoUpdate = false; } }).to(g.rotation, { z: r + 0.05, duration: 0.12 }).to(g.rotation, { z: r - 0.03, duration: 0.2 }).to(g.rotation, { z: r, duration: 0.3, ease: 'power2.out' }); },
   leaf: (m) => {
     audio.flip(); const y0 = m.position.y, r0 = m.rotation.y, riders = (m.userData.riders || []).filter((r) => r.parent === scene);
     const its = INTER.filter((it) => it.objs.some((o) => riders.includes(o))); its.forEach((it) => { it.busy = true; });
@@ -206,7 +207,7 @@ export function init() {
   hemi = new THREE.HemisphereLight(0x6b4a33, 0x0a0604, 0); scene.add(hemi);
   chestGlow = new THREE.PointLight(0xffc46b, 0, 1.4, 2); chestGlow.position.set(-0.35, 0.25, -1.75); scene.add(chestGlow);
 
-  buildDesk(); sea = buildWindow(scene); buildCandle(); buildProps(); buildBook(); buildParticles(); buildLooseLeaves(); buildDrolleries();
+  buildDesk(); sea = buildWindow(scene); interactive('window', sea.pickables, () => sea.cycle()); buildCandle(); buildProps(); buildBook(); buildParticles(); buildLooseLeaves(); buildDrolleries();
   const dk = scene.userData.desk; settle(dk.well, [dk.quill]); dk.quill.userData.y0 = dk.quill.position.y; settle(dk.scroll);
 
   const samples = SMALL ? 2 : PR >= 1.5 ? 2 : 4;
@@ -408,7 +409,7 @@ export function buildBook() {
   const T0 = PY_CLOSED + TC;
   const spineM = leatherM.clone(); spineM.side = THREE.DoubleSide;
   spine = new THREE.Mesh(new THREE.CylinderGeometry(T0 / 2, T0 / 2, HC, 28, 1, true, Math.PI, Math.PI), spineM);
-  spine.rotation.x = Math.PI / 2; spine.position.set(-0.006, T0 / 2, 0); spine.castShadow = true; book.add(spine);
+  spine.rotation.x = Math.PI / 2; spine.position.set(-0.006, T0 / 2, 0); spine.userData.h = T0 / 2; spine.castShadow = true; book.add(spine);
 
   const st = sealTextures();
   const side = new THREE.MeshPhysicalMaterial({ color: 0x8e1b14, roughness: 0.38, clearcoat: 0.6, clearcoatRoughness: 0.3, transparent: true });
@@ -596,7 +597,7 @@ export function frame(now) {
   if (a !== lastCoverA) {
     lastCoverA = a; bumpShadows(2);
     coverGroup.rotation.z = a * Math.PI; coverGroup.position.y = lerp(PY_CLOSED, PY_OPEN, smooth(clamp(a, 0, 1)));
-    spine.scale.x = Math.max(0.02, 1 - smooth(clamp(a * 1.6, 0, 1)));
+    const sk = Math.max(0.02, 1 - smooth(clamp(a * 1.6, 0, 1))); spine.scale.set(sk, 1, sk); spine.position.y = spine.userData.h * sk; spine.visible = sk > 0.03;
   }
   for (const L of leaves) if (L.dirty) bendLeaf(L);
   animateDrolleries(t, dt);
@@ -794,6 +795,18 @@ export function buildLooseLeaves() {
 }
 export function loadModels() {
   const loader = gltfLoader();
+  for (const P of WALL) {
+    loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
+      const root = gltf.scene, g = new THREE.Group(), inner = new THREE.Group(); inner.add(root); g.add(inner);
+      root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material.map) o.material.map.anisotropy = ANISO; } });
+      let b = new THREE.Box3().setFromObject(root, true); const sz = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
+      root.position.sub(c); inner.scale.setScalar(P.size / Math.max(sz.x, sz.y, sz.z));
+      g.rotation.set(...P.rot); scene.add(g); g.updateMatrixWorld(true);
+      b = new THREE.Box3().setFromObject(g, true);
+      g.position.set(P.pos[0], P.pos[1], WIN.z + 0.004 - b.min.z); freeze(g); bumpShadows(3);
+      if (P.key) interactive(P.key, [g], () => ACTIONS.wall(g));
+    }).catch(() => {});
+  }
   for (const P of PROPS) {
     loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
       const root = gltf.scene;

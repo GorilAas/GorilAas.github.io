@@ -91,7 +91,10 @@ export const TEXT = {
       scroll: ['Rolo de pergaminho', 'Tocai para o rolar'],
       bible: ['Folha de uma Bíblia', 'França, cerca de 1280 a 1300'],
       gradual: ['Folha de um antifonário', 'Cerca de 1400, com notação musical'],
-      psalter: ['Folha de um saltério real', 'Século XIII']
+      psalter: ['Folha de um saltério real', 'Século XIII'],
+      window: ['Janela sobre o mar', 'Tocai para fechar e abrir os postigos'],
+      relief: ['Agnus Dei e querubim', 'Relevo em mármore, Catalunha, cerca de 1140'],
+      arms: ['Maça e martelo de guerra', 'Armas de um cavaleiro, penduradas na parede']
     },
     book: {
       frontRubric: 'Aqui se começa o livro de',
@@ -188,7 +191,10 @@ export const TEXT = {
       scroll: ['Parchment scroll', 'Touch to roll it'],
       bible: ['Leaf from a Bible', 'France, about 1280 to 1300'],
       gradual: ['Leaf from an antiphonary', 'About 1400, with musical notation'],
-      psalter: ['Leaf from a royal psalter', '13th century']
+      psalter: ['Leaf from a royal psalter', '13th century'],
+      window: ['Window upon the sea', 'Touch to close and open the shutters'],
+      relief: ['Agnus Dei and cherub', 'Marble relief, Catalonia, about 1140'],
+      arms: ['Mace and war hammer', 'A knight’s arms, hung upon the wall']
     },
     book: {
       frontRubric: 'Here beginneth the book of',
@@ -285,7 +291,10 @@ export const TEXT = {
       scroll: ['Rollo de pergamino', 'Tocad para hacerlo rodar'],
       bible: ['Hoja de una Biblia', 'Francia, hacia 1280 a 1300'],
       gradual: ['Hoja de un antifonario', 'Hacia 1400, con notación musical'],
-      psalter: ['Hoja de un salterio real', 'Siglo XIII']
+      psalter: ['Hoja de un salterio real', 'Siglo XIII'],
+      window: ['Ventana sobre el mar', 'Tocad para cerrar y abrir los postigos'],
+      relief: ['Agnus Dei y querubín', 'Relieve en mármol, Cataluña, hacia 1140'],
+      arms: ['Maza y martillo de guerra', 'Armas de un caballero, colgadas en la pared']
     },
     book: {
       frontRubric: 'Aquí comienza el libro de',

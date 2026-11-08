@@ -9,6 +9,7 @@ Quase tudo no site é de domínio público ou CC0. As exceções são três mús
 Escaneamentos 3D:
 - **Castiçal de latão**, Egito ou Síria, 1ª metade do séc. XIV. Segura a vela. https://www.metmuseum.org/art/collection/search/444585
 - **Estojo de penas com inscrições**, Afeganistão, séc. XIV. https://www.metmuseum.org/art/collection/search/444536
+- **Relevo do Agnus Dei e querubim**, mármore, Catalunha, c. 1140–1150 (The Cloisters). Na parede, à esquerda da janela. https://www.metmuseum.org/art/collection/search/470771
 
 Folhas de manuscrito:
 - **Folha de um Saltério real**, séc. XIII. Fica embaixo da adaga. https://www.metmuseum.org/art/collection/search/466368
@@ -29,7 +30,12 @@ Folhas de manuscrito:
 - Madeira de mesa gasta e couro marrom. https://polyhaven.com/textures
 - Parede de pedra (Castle Wall Slates) e madeira dos postigos da janela (Medieval Wood), de Rob Tuytel. https://polyhaven.com/a/castle_wall_slates e https://polyhaven.com/a/medieval_wood
 
-A janela em arco ogival, o mar, o céu com a lua, o promontório e a nau ao longe foram feitos no próprio código.
+- Maça medieval ornamentada (Ulan Cabanilla) e martelo de guerra ornamentado (James Ray Cock e Ulan Cabanilla), cruzados na parede. https://polyhaven.com/a/ornate_medieval_mace e https://polyhaven.com/a/ornate_war_hammer
+
+## Vista da janela (Poly Haven, coleção Smugglers Cove, CC0)
+- Navio holandês médio, penhasco costeiro e a torre redonda do forte modular, simplificados para ficarem leves à distância. https://polyhaven.com/a/dutch_ship_medium, https://polyhaven.com/a/coastal_cliff_01 e https://polyhaven.com/a/modular_fort_01
+
+A janela em arco ogival, o mar com ondas e reflexo da lua e o céu noturno foram feitos no próprio código.
 
 ## Músicas (Wikimedia Commons, cerca de 16 minutos em sequência)
 1. **Santa Maria, Strela do Dia** (Cantiga de Santa Maria 100), Afonso X, séc. XIII. Intérprete: Makemi. Domínio público. https://commons.wikimedia.org/wiki/File:Santa_Maria.ogg

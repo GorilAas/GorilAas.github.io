@@ -18,3 +18,8 @@ export const PROPS = [
   { id: 'treasure_chest', dir: 'treasure-chest', pos: [-0.35, 0, -1.75], rot: [0, 18, 0], scale: 0.85 },
   { id: 'met_penbox', dir: 'met-penbox', pos: [1.38, 0.014, -0.07], rot: [0, 84, 0], scale: 2.5 }
 ];
+export const WALL = [
+  { key: 'relief', dir: 'met-agnus-dei', pos: [-0.36, 1.22], rot: [0, 0, 0], size: 0.62 },
+  { key: 'arms', dir: 'ornate-war-hammer', pos: [-1.45, 1.16], rot: [0, 0, 0.55], size: 1.0 },
+  { key: 'arms', dir: 'ornate-medieval-mace', pos: [-1.45, 1.16], rot: [0, 0, -0.55], size: 0.94 }
+];
