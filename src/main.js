@@ -4,12 +4,13 @@ import { $, wait } from './core/env.js';
 import { T } from './core/i18n.js';
 import { camera, frame, ignite, init, loadModels, perf, renderer, scene, warmup } from './scene/world.js';
 import { applyText, buildHUD } from './ui/hud.js';
-import { finishLoader, frameYield, loaderText, task } from './ui/loader.js';
+import { finishLoader, frameYield, loaderText, step, task } from './ui/loader.js';
 import { audio } from './audio/audio.js';
 
 async function boot() {
   applyText();
   loaderText(T().ui.loaderLine);
+  const later = Array.from({ length: 16 }, step);
   const sounds = task(audio.preload());
   await Promise.all([task(loadFonts()), task(loadTextures()), task(loadStick()), task(loadImages())]);
   let models;
@@ -27,9 +28,10 @@ async function boot() {
   applyText();
   await task(renderer.compileAsync(scene, camera));
   await Promise.race([models, wait(30000)]);
-  await task(renderer.compileAsync(scene, camera));
-  await task(warmup());
-  await Promise.race([sounds, wait(20000)]);
+  later.slice(0, 13).forEach((f) => f());
+  await task(renderer.compileAsync(scene, camera)); later[13]();
+  await task(warmup()); later[14]();
+  await Promise.race([sounds, wait(20000)]); later[15]();
   perf.last = performance.now();
   requestAnimationFrame(frame);
   await frameYield();
