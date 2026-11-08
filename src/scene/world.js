@@ -53,17 +53,34 @@ function supportAt(x, z, top) {
   }
   return null;
 }
+const bottomMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+function bottomShell(meshes, minY, slab) {
+  const out = [], a = new THREE.Vector3(), c = new THREE.Vector3(), d = new THREE.Vector3();
+  for (const m of meshes) {
+    const pos = m.geometry.attributes.position, idx = m.geometry.index, n = idx ? idx.count : pos.count;
+    for (let i = 0; i < n; i += 3) {
+      a.fromBufferAttribute(pos, idx ? idx.getX(i) : i).applyMatrix4(m.matrixWorld);
+      c.fromBufferAttribute(pos, idx ? idx.getX(i + 1) : i + 1).applyMatrix4(m.matrixWorld);
+      d.fromBufferAttribute(pos, idx ? idx.getX(i + 2) : i + 2).applyMatrix4(m.matrixWorld);
+      if (Math.min(a.y, c.y, d.y) < minY + slab) out.push(a.x, a.y, a.z, c.x, c.y, c.z, d.x, d.y, d.z);
+    }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+  return new THREE.Mesh(g, bottomMat);
+}
 export function restGap(obj, skip = []) {
   obj.updateMatrixWorld(true);
   const meshes = []; obj.traverse((o) => { if (o.isMesh && !skip.includes(o)) meshes.push(o); });
-  const b = new THREE.Box3().setFromObject(obj, true), n = 40, o = new THREE.Vector3();
+  const b = new THREE.Box3().setFromObject(obj, true), n = 32, o = new THREE.Vector3();
+  const shell = bottomShell(meshes, b.min.y, Math.max(0.03, (b.max.y - b.min.y) * 0.12));
   let gap = Infinity, on = null;
   for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) {
     o.set(THREE.MathUtils.lerp(b.min.x, b.max.x, i / n), b.min.y - 1, THREE.MathUtils.lerp(b.min.z, b.max.z, j / n));
-    upRay.set(o, V_UP); const h = upRay.intersectObjects(meshes, false)[0]; if (!h) continue;
+    upRay.set(o, V_UP); const h = upRay.intersectObject(shell, false)[0]; if (!h) continue;
     const s = supportAt(o.x, o.z, b.max.y + 1), g = h.point.y - (s ? s.point.y : 0);
     if (g < gap) { gap = g; on = s ? s.object : null; }
   }
+  shell.geometry.dispose();
   return { gap, on };
 }
 export function settle(obj, carry = [], skip = []) {
