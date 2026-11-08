@@ -39,7 +39,7 @@ export const canLook = () => isPortrait() || COARSE;
 export const cover = { a: 0 };
 export const fx = { light: 0, flame: 0, dust: 0, env: 0 };
 export let state = 'loading', spread = 1, readSide = 'right', drag = null, busy = 0;
-export let shadowFrames = 4, lastCoverA = -1;
+export let shadowFrames = 4, lastCoverA = -1, leafShadowDirty = false;
 export const bumpShadows = (n = 2) => { shadowFrames = Math.max(shadowFrames, n); };
 export const isPortrait = () => innerWidth / innerHeight < 0.8;
 export const freeze = (o) => { o.updateMatrixWorld(true); o.traverse((c) => { c.matrixAutoUpdate = false; }); };
@@ -383,7 +383,7 @@ export function bendLeaf(L) {
   L.geo.attributes.position.needsUpdate = true; L.geo.computeVertexNormals(); L.geo.computeBoundingSphere();
   L.group.position.y = lerp(yRight(L.i), yLeft(L.i), smooth(t)) + Math.sin(Math.PI * t) * 0.004;
   L.dirty = false;
-  bumpShadows(2);
+  if (LOW) leafShadowDirty = true; else bumpShadows(2);
 }
 
 export function buildBook() {
@@ -651,6 +651,7 @@ export function frame(now) {
   lookDir.set(camState.tx - camState.px, camState.ty - camState.py, camState.tz - camState.pz);
   if (Math.abs(look.yaw) > 1e-4 || Math.abs(look.pitch) > 1e-4) { lookDir.applyAxisAngle(V_Y, look.yaw); lookDir.applyAxisAngle(lookRight.crossVectors(lookDir, V_Y).normalize(), look.pitch); }
   camera.lookAt(camera.position.x + lookDir.x, camera.position.y + lookDir.y, camera.position.z + lookDir.z);
+  if (leafShadowDirty && !busy && !drag && !leaves.some((L) => gsap.isTweening(L))) { leafShadowDirty = false; bumpShadows(2); }
   if (shadowFrames > 0) { renderer.shadowMap.needsUpdate = true; shadowFrames--; }
   composer.render();
   requestAnimationFrame(frame);
@@ -684,7 +685,7 @@ function cullLeaves() {
     if (keep && !L.group.visible) pending.push(L);
     if (L.group.visible !== show) {
       L.group.visible = show;
-      if (show) { L.dirty = true; bumpShadows(2); }
+      if (show) { L.dirty = true; if (LOW) leafShadowDirty = true; else bumpShadows(2); }
     }
     if (!keep && L.resident) { L.resident = false; L.group.children.forEach((m) => m.material.map && m.material.map.dispose()); }
     if (show) L.resident = true;
