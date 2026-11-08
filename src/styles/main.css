@@ -84,6 +84,10 @@ body.loading #intro .ch,body.loading #intro .incipit,body.loading #ignite{animat
 }
 #look{left:1.4rem;bottom:1.5rem;background:none;border:0;padding:.3rem 0;cursor:pointer;font-style:italic;font-size:.95rem;color:#b9a27a;text-shadow:0 1px 6px #000;transition:color .2s,opacity .5s}
 #look:hover,#look:focus-visible{color:#f0dfb4;outline:none}
+#zoom{right:1rem;top:5.4rem;width:3rem;height:3rem;padding:.35rem;border:0;border-radius:50%;background:rgba(10,6,3,.55);color:#d8c193;cursor:pointer;transition:color .2s,opacity .5s}
+#zoom svg{width:100%;height:100%;display:block}
+#zoom[aria-pressed="true"] .plus{display:none}
+#zoom:hover,#zoom:focus-visible{color:#f0dfb4;outline:none}
 #pager{left:50%;bottom:1.1rem;transform:translateX(-50%);display:flex;align-items:center;gap:.6rem}
 #pager button{background:none;border:0;padding:.3rem;cursor:pointer;color:#d8c193;transition:color .2s}
 #pager svg{display:block;width:78px;height:39px;overflow:visible;transition:transform .25s ease;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))}

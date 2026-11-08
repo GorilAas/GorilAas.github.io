@@ -1,8 +1,7 @@
-import { SMALL } from '../core/env.js';
 import { B } from '../core/i18n.js';
 import { fbm, vnoise } from '../core/math.js';
 
-export const PW = SMALL ? 768 : 1024, PH = Math.round(PW * 4 / 3), U = PW / 1000, UH = 1333;
+export const PW = 1024, PH = Math.round(PW * 4 / 3), U = PW / 1000, UH = 1333;
 export const F_BL = 'Ghotan Textura', F_IN = 'Lombarda Ghotan', F_TX = 'IM Fell English', F_SC = 'IM Fell English SC';
 export const C = { ink: '#2b1a10', soft: '#5a4130', rubric: '#a3241c', lapis: '#22408a', gold: '#c19a3f', verd: '#3f6b52' };
 export const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };

@@ -162,7 +162,7 @@ export function buildWindow(scene) {
   const room = new THREE.Group(); scene.add(room);
 
   const hole = archShape(WIN.w, WIN.spring, WIN.sill);
-  const shape = new THREE.Shape(); shape.moveTo(-7, -0.05); shape.lineTo(7, -0.05); shape.lineTo(7, 5); shape.lineTo(-7, 5); shape.holes.push(hole);
+  const shape = new THREE.Shape(); shape.moveTo(-40, -0.05); shape.lineTo(40, -0.05); shape.lineTo(40, 9); shape.lineTo(-40, 9); shape.holes.push(hole);
   const wallGeo = new THREE.ExtrudeGeometry(shape, { depth: WIN.depth, bevelEnabled: false, curveSegments: 28 }); cleanNormals(wallGeo);
   const st = texSet(ASSETS.stone, 0.42, 0.42);
   const wallMat = st ? new THREE.MeshStandardMaterial({ map: st[0], normalMap: st[1], roughnessMap: st[2], roughness: 1, color: 0x9a8f84 }) : new THREE.MeshStandardMaterial({ color: 0x3a342e, roughness: 0.95 });

@@ -4,7 +4,7 @@ import { PAGE_TEX, paintCover, paintPage } from '../book/pages.js';
 import { $, COARSE } from '../core/env.js';
 import { B, fmt, LANG, setLanguage, T } from '../core/i18n.js';
 import { SITE, TEXT } from '../data/conteudo.js';
-import { backToBook, canLook, goTo, isPortrait, LAST, lookUp, next, onDown, onMove, onUp, openBook, prev, readSide, spread, state } from '../scene/world.js';
+import { backToBook, canLook, goTo, setZoom, zoom, isPortrait, LAST, lookUp, next, onDown, onMove, onUp, openBook, prev, readSide, spread, state } from '../scene/world.js';
 
 export let hintKey = null;
 export const CHAPTERS = [
@@ -22,9 +22,11 @@ export function renderHint() {
   $('#hint').textContent = hintKey === 'seal' ? (L ? u.sealLook : COARSE ? u.sealTouch : u.sealMouse) : hintKey === 'away' ? (L ? u.awayLook : COARSE ? u.awayTouch : u.awayMouse) : (COARSE ? u.readTouch : u.readMouse);
 }
 export function renderLook() {
-  const b = $('#look'), u = T().ui;
+  const b = $('#look'), u = T().ui, z = $('#zoom');
   b.classList.toggle('off', state !== 'reading' && state !== 'away');
   b.textContent = state === 'away' ? u.lookBack : u.lookUp;
+  z.classList.toggle('off', state !== 'reading' || !isPortrait());
+  z.setAttribute('aria-pressed', String(zoom.on)); z.setAttribute('aria-label', zoom.on ? u.zoomOut : u.zoomIn); z.title = zoom.on ? u.zoomOut : u.zoomIn;
 }
 export function updateHUD() {
   if (state !== 'reading' && state !== 'opening') return;
@@ -45,6 +47,7 @@ export function buildHUD() {
   });
   $('#prev').addEventListener('click', prev); $('#next').addEventListener('click', next);
   $('#look').addEventListener('click', () => (state === 'away' ? backToBook() : lookUp()));
+  $('#zoom').addEventListener('click', () => setZoom(!zoom.on));
   $('#sound').addEventListener('click', () => { audio.setMuted(!audio.muted); renderSound(); });
   for (const b of document.querySelectorAll('#lang button')) b.addEventListener('click', () => setLang(b.dataset.lang));
   addEventListener('keydown', (e) => {

@@ -27,7 +27,9 @@ export let CL = 0;
 
 export let renderer, scene, camera, composer, bloom, candleLight, fillLight, hemi, flame, flameMat, glow, halo, dust, embers, emberData = [];
 export let coverGroup, spine, sealGroup, sealHalves = [], ribbonMat, leaves = [];
-export let PR = 1, PR_MAX = 1, sea = null;
+export let PR = 1, PR_MAX = 1, PR_BASE = 1, sea = null;
+export const zoom = { on: false, x: 0, z: 0 };
+let zoomDrag = null;
 export const camState = { px: 0, py: 0, pz: 0, tx: 0, ty: 0, tz: 0 };
 export const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
 export const look = { yaw: 0, pitch: 0, ty: 0, tp: 0 };
@@ -205,7 +207,7 @@ export const ACTIONS = {
 export function init() {
   const canvas = $('#gl');
   renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-  PR_MAX = Math.min(devicePixelRatio || 1, LOW ? 1.5 : 1.75); PR = PR_MAX;
+  PR_MAX = Math.min(devicePixelRatio || 1, LOW ? 1.5 : 1.75); PR = PR_BASE = PR_MAX;
   renderer.setPixelRatio(PR); renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.25;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;
@@ -254,15 +256,15 @@ export function buildDesk() {
   let m;
   if (ASSETS.wood) {
     const { diff, nor, rough } = ASSETS.wood;
-    for (const t of [diff, nor, rough]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4.05, 2.0); t.anisotropy = ANISO; }
+    for (const t of [diff, nor, rough]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8.68, 2.0); t.anisotropy = ANISO; }
     diff.colorSpace = THREE.SRGBColorSpace;
     m = new THREE.MeshStandardMaterial({ map: diff, normalMap: nor, normalScale: new THREE.Vector2(1.2, 1.2), roughnessMap: rough, roughness: 1, metalness: 0, color: 0xc29b7c });
   } else {
     const wood = woodTextures();
-    wood.map.repeat.set(1.87, 1.6); wood.bump.repeat.copy(wood.map.repeat);
+    wood.map.repeat.set(4.0, 1.6); wood.bump.repeat.copy(wood.map.repeat);
     m = new THREE.MeshStandardMaterial({ map: wood.map, bumpMap: wood.bump, bumpScale: 1.2, roughness: 0.72, metalness: 0 });
   }
-  const desk = new THREE.Mesh(new THREE.PlaneGeometry(14, 6.2), m);
+  const desk = new THREE.Mesh(new THREE.PlaneGeometry(30, 6.2), m);
   desk.rotation.x = -Math.PI / 2; desk.position.z = 0.4; desk.receiveShadow = true; scene.add(desk); freeze(desk);
 }
 
@@ -560,8 +562,9 @@ export function poseReading() {
   const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), a = innerWidth / innerHeight;
   let tx = 0, needW = 2.3, needH = 1.62;
   if (isPortrait()) { tx = readSide === 'left' ? -0.5 : 0.5; needW = 1.1; needH = 1.5; }
-  const dist = Math.max(needH / (2 * tanH), needW / (2 * tanH * a)), el = THREE.MathUtils.degToRad(63);
+  let dist = Math.max(needH / (2 * tanH), needW / (2 * tanH * a)), el = THREE.MathUtils.degToRad(63);
   const t = new THREE.Vector3(tx, 0.12, 0.08);
+  if (zoom.on && isPortrait()) { t.set(zoom.x, 0.12, zoom.z); dist /= 1.32; }
   return { p: new THREE.Vector3(tx, t.y + Math.sin(el) * dist, t.z + Math.cos(el) * dist), t };
 }
 export function setPose(pose, dur = 1.6, ease = 'power2.inOut', delay = 0) {
@@ -578,6 +581,15 @@ export function onResize() {
   resizeTargets();
   if (state === 'reading') setPose(poseReading(), 0.6); else if (state === 'closed' || state === 'away') setPose(poseClosed(), 0.6);
   updateHUD();
+}
+export function readingQuality(on) {
+  PR_MAX = on && LOW ? Math.min(devicePixelRatio || 1, 2.25) : PR_BASE;
+  if (Math.abs(PR - PR_MAX) > 0.01) setPixelRatio(PR_MAX);
+}
+export function setZoom(on) {
+  if (on && (state !== 'reading' || !isPortrait() || busy)) return;
+  zoom.on = on; if (on) { zoom.x = readSide === 'left' ? -0.48 : 0.5; zoom.z = -0.06; }
+  if (state === 'reading') setPose(poseReading(), 0.7); renderLook();
 }
 export function setPixelRatio(p) {
   PR = p; renderer.setPixelRatio(p); composer.setPixelRatio(p); resizeTargets();
@@ -692,12 +704,14 @@ export function flipForward(delay = 0, dur) { if (spread >= LAST) return false; 
 export function flipBack(delay = 0, dur) { if (spread <= 1) return false; spread--; animateLeaf(leaves[spread - 1], 0, dur, delay); return true; }
 export function next() {
   if (state !== 'reading') return;
+  if (zoom.on) setZoom(false);
   if (isPortrait() && readSide === 'left') { readSide = 'right'; setPose(poseReading(), 0.8); }
   else if (flipForward()) { if (isPortrait()) { readSide = 'left'; setPose(poseReading(), 1.0, 'power2.inOut', 0.35); } }
   afterChange();
 }
 export function prev() {
   if (state !== 'reading') return;
+  if (zoom.on) setZoom(false);
   if (isPortrait() && readSide === 'right') { readSide = 'left'; setPose(poseReading(), 0.8); }
   else if (flipBack()) { if (isPortrait()) { readSide = 'right'; setPose(poseReading(), 1.0, 'power2.inOut', 0.35); } }
   afterChange();
@@ -735,6 +749,7 @@ export function onDown(e) {
     return;
   }
   if (state !== 'reading' || busy) return;
+  if (zoom.on) { zoomDrag = { x: e.clientX, y: e.clientY, zx: zoom.x, zz: zoom.z }; $('#gl').setPointerCapture(e.pointerId); return; }
   const link = linkAt(e.clientX, e.clientY);
   if (link) { pointer.link = link; return; }
   const p = hitPlane(e.clientX, e.clientY, BASE + 0.03);
@@ -748,6 +763,12 @@ export function onDown(e) {
   if (drag) { $('#gl').setPointerCapture(e.pointerId); gsap.killTweensOf(drag.L); document.body.style.cursor = 'grabbing'; }
 }
 export function onMove(e) {
+  if (zoomDrag) {
+    const k = 0.84 / innerWidth, c = readSide === 'left' ? -0.5 : 0.5;
+    zoom.x = clamp(zoomDrag.zx - (e.clientX - zoomDrag.x) * k, c - 0.12, c + 0.12);
+    zoom.z = clamp(zoomDrag.zz - (e.clientY - zoomDrag.y) * k * 1.12, -0.32, 0.32);
+    setPose(poseReading(), 0); return;
+  }
   if (lookDrag) {
     const dx = e.clientX - lookDrag.x, dy = e.clientY - lookDrag.y;
     if (!lookDrag.moved && Math.hypot(dx, dy) > 8) { lookDrag.moved = true; hideTip(); }
@@ -778,6 +799,7 @@ export function onMove(e) {
   if (state === 'closed') for (const h of sealHalves) h.material[1].emissive?.setRGB(sealHover ? 0.25 : 0, sealHover ? 0.03 : 0, 0);
 }
 export function onUp(e) {
+  if (zoomDrag) { zoomDrag = null; return; }
   if (lookDrag) { const d = lookDrag; lookDrag = null; if (!d.moved && (state === 'closed' || state === 'away')) tapRoom(e, d.touch); return; }
   if (pointer.link) {
     const l = pointer.link; pointer.link = null;
@@ -831,21 +853,22 @@ export function openBook() {
   setPose(poseReading(), 2.6, 'power2.inOut', 0.4);
   gsap.delayedCall(2.8, () => {
     state = 'reading'; spread = 1;
-    show('#pager'); show('#ribbons'); updateHUD(); showHint('read'); renderLook();
+    show('#pager'); show('#ribbons'); updateHUD(); showHint('read'); readingQuality(true); renderLook();
     $('#gl').focus({ preventScroll: true });
   });
 }
 
 export function lookUp() {
   if (state !== 'reading' || busy || drag) return;
-  state = 'away'; hide('#pager'); hide('#ribbons'); hideTip();
+  if (zoom.on) zoom.on = false;
+  state = 'away'; hide('#pager'); hide('#ribbons'); hideTip(); readingQuality(false);
   setPose(poseClosed(), 1.8, 'power2.inOut'); showHint('away'); renderLook();
 }
 export function backToBook() {
   if (state !== 'away') return;
   state = 'returning'; hideHint(); hideTip(); renderLook();
   setPose(poseReading(), 1.6, 'power2.inOut');
-  gsap.delayedCall(1.6, () => { state = 'reading'; show('#pager'); show('#ribbons'); updateHUD(); renderLook(); $('#gl').focus({ preventScroll: true }); });
+  gsap.delayedCall(1.6, () => { state = 'reading'; show('#pager'); show('#ribbons'); updateHUD(); readingQuality(true); renderLook(); $('#gl').focus({ preventScroll: true }); });
 }
 export function overBook(cx, cy) { const p = hitPlane(cx, cy, BASE + 0.03); return !!p && Math.abs(p.x) < WC && Math.abs(p.z) < HC / 2; }
 

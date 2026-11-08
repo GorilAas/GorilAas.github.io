@@ -233,7 +233,7 @@ export function paintPage(e) {
 }
 export function pageTexture(draw, side, mirror = false) {
   const canvas = mk(PW, PH), tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = ANISO;
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = Math.max(ANISO, 8);
   if (mirror) { tex.wrapS = THREE.RepeatWrapping; tex.repeat.x = -1; tex.offset.x = 1; }
   const e = { canvas, tex, draw, side }; PAGE_TEX.push(e); paintPage(e);
   return tex;
