@@ -4,7 +4,7 @@ import { PAGE_TEX, paintCover, paintPage } from '../book/pages.js';
 import { $, COARSE } from '../core/env.js';
 import { B, fmt, LANG, setLanguage, T } from '../core/i18n.js';
 import { SITE, TEXT } from '../data/conteudo.js';
-import { goTo, isPortrait, LAST, next, onDown, onMove, onUp, openBook, prev, readSide, spread, state } from '../scene/world.js';
+import { backToBook, goTo, isPortrait, LAST, lookUp, next, onDown, onMove, onUp, openBook, prev, readSide, spread, state } from '../scene/world.js';
 
 export let hintKey = null;
 export const CHAPTERS = [
@@ -18,7 +18,12 @@ export function showHint(key) { hintKey = key; renderHint(); show('#hint'); }
 export function hideHint() { hintKey = null; hide('#hint'); }
 export function renderHint() {
   if (!hintKey) return; const u = T().ui;
-  $('#hint').textContent = hintKey === 'seal' ? (COARSE ? u.sealTouch : u.sealMouse) : (COARSE ? u.readTouch : u.readMouse);
+  $('#hint').textContent = hintKey === 'seal' ? (COARSE ? u.sealTouch : u.sealMouse) : hintKey === 'away' ? (COARSE ? u.awayTouch : u.awayMouse) : (COARSE ? u.readTouch : u.readMouse);
+}
+export function renderLook() {
+  const b = $('#look'), u = T().ui;
+  b.classList.toggle('off', state !== 'reading' && state !== 'away');
+  b.textContent = state === 'away' ? u.lookBack : u.lookUp;
 }
 export function updateHUD() {
   if (state !== 'reading' && state !== 'opening') return;
@@ -38,11 +43,14 @@ export function buildHUD() {
     rib.appendChild(li);
   });
   $('#prev').addEventListener('click', prev); $('#next').addEventListener('click', next);
+  $('#look').addEventListener('click', () => (state === 'away' ? backToBook() : lookUp()));
   $('#sound').addEventListener('click', () => { audio.setMuted(!audio.muted); renderSound(); });
   for (const b of document.querySelectorAll('#lang button')) b.addEventListener('click', () => setLang(b.dataset.lang));
   addEventListener('keydown', (e) => {
     if (e.target.closest && e.target.closest('button, a')) return;
     if (state === 'closed' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openBook(); return; }
+    if (e.key === 'Escape' && state === 'reading') { lookUp(); return; }
+    if (state === 'away' && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); backToBook(); return; }
     if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); next(); }
     if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
   });
@@ -79,7 +87,7 @@ export function applyText() {
   $('#nav').setAttribute('aria-label', u.chapters); $('#lang').setAttribute('aria-label', u.language);
   for (const b of document.querySelectorAll('#lang button')) b.setAttribute('aria-pressed', String(b.dataset.lang === LANG));
   [...$('#ribbons').querySelectorAll('li')].forEach((li, i) => { const l = chapterLabel(i); li.querySelector('.lbl').textContent = l; li.querySelector('button').setAttribute('aria-label', l); });
-  renderSound(); renderHint(); updateHUD(); buildA11y();
+  renderSound(); renderHint(); updateHUD(); buildA11y(); renderLook();
 }
 export function setLang(l) {
   if (!TEXT[l] || l === LANG) return;

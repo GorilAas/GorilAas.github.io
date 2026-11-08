@@ -27,6 +27,9 @@ Folhas de manuscrito:
 ## Modelos e texturas (Poly Haven, CC0)
 - Adaga medieval ornamentada, cálice de latão, baú do tesouro e maçã. https://polyhaven.com/models
 - Madeira de mesa gasta e couro marrom. https://polyhaven.com/textures
+- Parede de pedra (Castle Wall Slates) e madeira dos postigos da janela (Medieval Wood), de Rob Tuytel. https://polyhaven.com/a/castle_wall_slates e https://polyhaven.com/a/medieval_wood
+
+A janela em arco ogival, o mar, o céu com a lua, o promontório e a nau ao longe foram feitos no próprio código.
 
 ## Músicas (Wikimedia Commons, cerca de 16 minutos em sequência)
 1. **Santa Maria, Strela do Dia** (Cantiga de Santa Maria 100), Afonso X, séc. XIII. Intérprete: Makemi. Domínio público. https://commons.wikimedia.org/wiki/File:Santa_Maria.ogg

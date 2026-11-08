@@ -42,6 +42,7 @@ src/
     world.js               cena 3D, animação, interação e sequências
     materials.js           texturas geradas por código
     layout.js              posições de objetos, folhas e drolleries
+    window.js              parede, janela e vista do mar à noite
   audio/audio.js           efeitos sonoros e playlist medieval
   ui/hud.js                interface, idiomas e acessibilidade
   styles/main.css          estilos

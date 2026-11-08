@@ -25,7 +25,7 @@ export async function loadTextures() {
       ASSETS[name] = { diff, nor, rough };
     } catch (e) {}
   };
-  await Promise.race([Promise.all([set('wood', 'wood-table-worn'), set('leather', 'brown-leather')]), wait(8000)]);
+  await Promise.race([Promise.all([set('wood', 'wood-table-worn'), set('leather', 'brown-leather'), set('stone', 'castle-wall-slates'), set('plank', 'medieval-wood')]), wait(8000)]);
   if (ASSETS.leather) {
     const { diff, nor, rough } = ASSETS.leather;
     diff.colorSpace = THREE.SRGBColorSpace;

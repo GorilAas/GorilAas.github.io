@@ -13,8 +13,9 @@ import { T } from '../core/i18n.js';
 import { clamp, lerp, smooth, vnoise } from '../core/math.js';
 import { SITE } from '../data/conteudo.js';
 import { DROLL, LEAVES, PROPS } from './layout.js';
+import { buildWindow } from './window.js';
 import { featherTexture, glowTexture, leatherSideTexture, pageEdgeTexture, sealTextures, woodTextures } from './materials.js';
-import { hideHint, hintKey, show, showHint, updateHUD } from '../ui/hud.js';
+import { hide, hideHint, hintKey, renderLook, show, showHint, updateHUD } from '../ui/hud.js';
 
 export const W = 1.0, H = 1.36, WC = 1.05, HC = 1.42, TC = 0.035, TB = 0.075, EPS = 0.0035, NL = 6, LAST = NL + 1, SEG = 40, SEGZ = 14;
 export const BASE = TC + TB;
@@ -25,7 +26,7 @@ export let CL = 0;
 
 export let renderer, scene, camera, composer, bloom, candleLight, fillLight, hemi, flame, flameMat, glow, halo, dust, embers, emberData = [];
 export let coverGroup, spine, sealGroup, sealHalves = [], ribbonMat, leaves = [];
-export let PR = 1, PR_MAX = 1;
+export let PR = 1, PR_MAX = 1, sea = null;
 export const camState = { px: 0, py: 0, pz: 0, tx: 0, ty: 0, tz: 0 };
 export const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
 export const cover = { a: 0 };
@@ -72,7 +73,7 @@ export const INTER = [], ibox = new THREE.Box3(), ihit = new THREE.Vector3();
 export const bump = () => bumpShadows(2);
 export function interactive(key, objs, action) { INTER.push({ key, objs: [].concat(objs), action, busy: false }); }
 export function propAt(cx, cy) {
-  if (state !== 'closed' && state !== 'reading') return null;
+  if (state !== 'closed' && state !== 'reading' && state !== 'away') return null;
   setRay(cx, cy); let best = null, bd = Infinity;
   for (const it of INTER) for (const o of it.objs) {
     ibox.setFromObject(o); ibox.expandByScalar(0.015);
@@ -192,7 +193,7 @@ export function init() {
   scene.environmentIntensity = 0;
   pm.dispose();
 
-  camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.02, 40);
+  camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.02, 60);
 
   candleLight = new THREE.PointLight(0xffa458, 0, 0, 2);
   candleLight.position.set(CANDLE.x, 0.5 + CL, CANDLE.z);
@@ -205,7 +206,7 @@ export function init() {
   hemi = new THREE.HemisphereLight(0x6b4a33, 0x0a0604, 0); scene.add(hemi);
   chestGlow = new THREE.PointLight(0xffc46b, 0, 1.4, 2); chestGlow.position.set(-0.35, 0.25, -1.75); scene.add(chestGlow);
 
-  buildDesk(); buildCandle(); buildProps(); buildBook(); buildParticles(); buildLooseLeaves(); buildDrolleries();
+  buildDesk(); sea = buildWindow(scene); buildCandle(); buildProps(); buildBook(); buildParticles(); buildLooseLeaves(); buildDrolleries();
   const dk = scene.userData.desk; settle(dk.well, [dk.quill]); dk.quill.userData.y0 = dk.quill.position.y; settle(dk.scroll);
 
   const samples = SMALL ? 2 : PR >= 1.5 ? 2 : 4;
@@ -233,8 +234,8 @@ export function buildDesk() {
     wood.map.repeat.set(1.2, 1.6); wood.bump.repeat.copy(wood.map.repeat);
     m = new THREE.MeshStandardMaterial({ map: wood.map, bumpMap: wood.bump, bumpScale: 1.2, roughness: 0.72, metalness: 0 });
   }
-  const desk = new THREE.Mesh(new THREE.PlaneGeometry(9, 7), m);
-  desk.rotation.x = -Math.PI / 2; desk.receiveShadow = true; scene.add(desk); freeze(desk);
+  const desk = new THREE.Mesh(new THREE.PlaneGeometry(9, 6.2), m);
+  desk.rotation.x = -Math.PI / 2; desk.position.z = 0.4; desk.receiveShadow = true; scene.add(desk); freeze(desk);
 }
 
 export function buildCandle() {
@@ -524,8 +525,8 @@ export function poseIntro() { return { p: new THREE.Vector3(CANDLE.x + 0.5, 0.62
 export function poseClosed() {
   const a = innerWidth / innerHeight;
   if (a < 0.8) { const d = 2.05 / a; return { p: new THREE.Vector3(0.62, 0.12 + d * 0.72, 0.1 + d * 0.62), t: new THREE.Vector3(0.48, 0.12, 0.02) }; }
-  const k = a < 1.2 ? 1.35 : 1;
-  return { p: new THREE.Vector3(1.0 + 0.4 * (k - 1), 1.85 * k, 2.75 * k), t: new THREE.Vector3(0.0, 0.26, -0.38) };
+  if (a < 1.2) return { p: new THREE.Vector3(1.4, 2.05, 4.45), t: new THREE.Vector3(0.14, 0.5, -0.95) };
+  return { p: new THREE.Vector3(1.15, 1.72, 3.45), t: new THREE.Vector3(0.18, 0.56, -1.0) };
 }
 export function poseReading() {
   const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), a = innerWidth / innerHeight;
@@ -547,7 +548,7 @@ export function resizeTargets() {
 }
 export function onResize() {
   resizeTargets();
-  if (state === 'reading') setPose(poseReading(), 0.6); else if (state === 'closed') setPose(poseClosed(), 0.6);
+  if (state === 'reading') setPose(poseReading(), 0.6); else if (state === 'closed' || state === 'away') setPose(poseClosed(), 0.6);
   updateHUD();
 }
 export function setPixelRatio(p) {
@@ -567,7 +568,7 @@ export function watchPerf(now) {
   else if (avg < 14 && PR < PR_MAX) { setPixelRatio(Math.min(PR_MAX, PR + 0.25)); perf.cool = 6; }
 }
 
-export const clock = new THREE.Clock();
+export const clock = new THREE.Clock(), camPose = new THREE.Vector3();
 export function frame(now) {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   watchPerf(now || performance.now());
@@ -599,6 +600,7 @@ export function frame(now) {
   }
   for (const L of leaves) if (L.dirty) bendLeaf(L);
   animateDrolleries(t, dt);
+  sea.update(t, 1, camPose.set(camState.px, camState.py, camState.pz));
   pointer.sx += (pointer.x - pointer.sx) * 0.05; pointer.sy += (pointer.y - pointer.sy) * 0.05;
   const par = CALM || drag ? 0 : (state === 'reading' ? 0.05 : 0.12);
   camera.position.set(camState.px + pointer.sx * par, camState.py - pointer.sy * par * 0.6, camState.pz);
@@ -658,6 +660,11 @@ export function onDown(e) {
     const it = propAt(e.clientX, e.clientY); if (it) { poke(it); if (touch) showTip(it, e.clientX, e.clientY, 2200); }
     return;
   }
+  if (state === 'away') {
+    if (overBook(e.clientX, e.clientY)) { backToBook(); return; }
+    const it = propAt(e.clientX, e.clientY); if (it) { poke(it); if (touch) showTip(it, e.clientX, e.clientY, 2200); }
+    return;
+  }
   if (state !== 'reading' || busy) return;
   const link = linkAt(e.clientX, e.clientY);
   if (link) { pointer.link = link; return; }
@@ -683,7 +690,7 @@ export function onMove(e) {
   if (e.target !== $('#gl')) { document.body.style.cursor = ''; hideTip(); return; }
   let cur = '';
   const sealHover = state === 'closed' && overSeal(e.clientX, e.clientY);
-  if (sealHover) cur = 'pointer';
+  if (sealHover || (state === 'away' && overBook(e.clientX, e.clientY))) cur = 'pointer';
   else if (state === 'reading') {
     if (linkAt(e.clientX, e.clientY)) cur = 'pointer';
     else { const p = hitPlane(e.clientX, e.clientY, BASE + 0.03); if (p && Math.abs(p.z) < H / 2 && Math.abs(p.x) < W && ((p.x > 0 && spread < LAST) || (p.x < 0 && spread > 1))) cur = 'grab'; }
@@ -748,10 +755,23 @@ export function openBook() {
   setPose(poseReading(), 2.6, 'power2.inOut', 0.4);
   gsap.delayedCall(2.8, () => {
     state = 'reading'; spread = 1;
-    show('#pager'); show('#ribbons'); updateHUD(); showHint('read');
+    show('#pager'); show('#ribbons'); updateHUD(); showHint('read'); renderLook();
     $('#gl').focus({ preventScroll: true });
   });
 }
+
+export function lookUp() {
+  if (state !== 'reading' || busy || drag) return;
+  state = 'away'; hide('#pager'); hide('#ribbons'); hideTip();
+  setPose(poseClosed(), 1.8, 'power2.inOut'); showHint('away'); renderLook();
+}
+export function backToBook() {
+  if (state !== 'away') return;
+  state = 'returning'; hideHint(); hideTip(); renderLook();
+  setPose(poseReading(), 1.6, 'power2.inOut');
+  gsap.delayedCall(1.6, () => { state = 'reading'; show('#pager'); show('#ribbons'); updateHUD(); renderLook(); $('#gl').focus({ preventScroll: true }); });
+}
+export function overBook(cx, cy) { const p = hitPlane(cx, cy, BASE + 0.03); return !!p && Math.abs(p.x) < WC && Math.abs(p.z) < HC / 2; }
 
 export function buildLooseLeaves() {
   for (const L of LEAVES) {
