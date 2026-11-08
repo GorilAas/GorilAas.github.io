@@ -22,7 +22,7 @@ export const W = 1.0, H = 1.36, WC = 1.05, HC = 1.42, TC = 0.035, TB = 0.075, EP
 export const BASE = TC + TB;
 export const PY_CLOSED = BASE + (NL + 1) * EPS + TB, PY_OPEN = TC;
 export const CANDLE = new THREE.Vector3(-1.5, 0, -0.78);
-export const LIGHT_MAX = 7.5;
+export const LIGHT_MAX = 9, CK = 3 / 1.75;
 export let CL = 0;
 
 export let renderer, scene, camera, composer, bloom, candleLight, fillLight, hemi, flame, flameMat, glow, halo, dust, embers, emberData = [];
@@ -133,6 +133,10 @@ export const ACTIONS = {
     audio.clink(); const tip = tipper(g), st = { a: 0 };
     return gsap.timeline({ onUpdate: () => { tip(st.a); bump(); }, onComplete: () => tip(0) }).to(st, { a: 0.16, duration: 0.12 }).to(st, { a: -0.12, duration: 0.16 }).to(st, { a: 0.07, duration: 0.16 }).to(st, { a: -0.03, duration: 0.16 }).to(st, { a: 0, duration: 0.2 });
   },
+  helmet: (g) => {
+    audio.clink(); const tip = tipper(g), st = { a: 0 };
+    return gsap.timeline({ onUpdate: () => { tip(st.a); bump(); }, onComplete: () => tip(0) }).to(st, { a: 0.07, duration: 0.14 }).to(st, { a: -0.05, duration: 0.18 }).to(st, { a: 0.025, duration: 0.18 }).to(st, { a: 0, duration: 0.22 });
+  },
   apple: (g) => {
     audio.crunch(); const y0 = g.position.y, r0 = g.rotation.y;
     return gsap.timeline({ onUpdate: bump, onComplete: () => { g.position.y = y0; g.rotation.y = r0; } }).to(g.position, { y: y0 + 0.16, duration: 0.22, ease: 'power2.out' }).to(g.position, { y: y0, duration: 0.45, ease: 'bounce.out' }).to(g.rotation, { y: r0 + Math.PI * 2, duration: 0.6, ease: 'power1.inOut' }, 0);
@@ -189,7 +193,7 @@ export function init() {
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.25;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;
   setAniso(Math.min(LOW ? 4 : 8, renderer.capabilities.getMaxAnisotropy()));
-  CL = ASSETS.stick ? ASSETS.stickTop - 0.075 : 0;
+  CL = ASSETS.stick ? ASSETS.stickTop - 0.075 * CK : 0;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x050302);
@@ -202,7 +206,7 @@ export function init() {
   camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.02, 60);
 
   candleLight = new THREE.PointLight(0xffa458, 0, 0, 2);
-  candleLight.position.set(CANDLE.x, 0.5 + CL, CANDLE.z);
+  candleLight.position.set(CANDLE.x, 0.5 * CK + CL, CANDLE.z);
   candleLight.castShadow = true;
   candleLight.shadow.mapSize.set(LOW ? 512 : 1024, LOW ? 512 : 1024);
   candleLight.shadow.bias = -0.002; candleLight.shadow.normalBias = 0.02;
@@ -246,7 +250,7 @@ export function buildDesk() {
 }
 
 export function buildCandle() {
-  const g = new THREE.Group(); g.position.copy(CANDLE); g.position.y = CL; scene.add(g);
+  const g = new THREE.Group(); g.position.copy(CANDLE); g.position.y = CL; g.scale.setScalar(CK); scene.add(g);
   if (ASSETS.stick) { const st = ASSETS.stick; st.position.set(CANDLE.x, 0, CANDLE.z); scene.add(st); freeze(st); }
   else {
     const brass = new THREE.MeshStandardMaterial({ color: 0xb48c55, metalness: 1, roughness: 0.32, envMapIntensity: 1.4 });
@@ -297,20 +301,20 @@ export function buildCandle() {
       }`
   });
   flame = new THREE.Mesh(new THREE.PlaneGeometry(0.075, 0.17).translate(0, 0.085, 0), flameMat);
-  flame.position.set(CANDLE.x, 0.418 + CL, CANDLE.z); flame.scale.setScalar(0.001); scene.add(flame);
+  flame.position.set(CANDLE.x, 0.418 * CK + CL, CANDLE.z); flame.scale.setScalar(0.001); scene.add(flame);
   const gt = glowTexture();
   glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: gt, color: 0xffb070, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0 }));
-  glow.position.set(CANDLE.x, 0.49 + CL, CANDLE.z); glow.scale.setScalar(0.26); scene.add(glow);
+  glow.position.set(CANDLE.x, 0.49 * CK + CL, CANDLE.z); glow.scale.setScalar(0.26 * CK); scene.add(glow);
   halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: gt, color: 0xff8a3a, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0 }));
-  halo.position.copy(glow.position); halo.scale.setScalar(2.2); scene.add(halo);
+  halo.position.copy(glow.position); halo.scale.setScalar(2.2 * 1.3); scene.add(halo);
   scene.userData.candleGroup = g;
 }
 
 export function buildProps() {
   const glass = new THREE.MeshPhysicalMaterial({ color: 0x120c10, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 2 });
   const prof = [[0, 0], [0.11, 0], [0.12, 0.02], [0.12, 0.085], [0.095, 0.115], [0.045, 0.128], [0.043, 0.158], [0.054, 0.163], [0.05, 0.172], [0, 0.172]].map(([x, y]) => new THREE.Vector2(x, y));
-  const well = new THREE.Mesh(new THREE.LatheGeometry(prof, 48), glass); well.position.set(1.66, 0, -0.68); well.castShadow = true; scene.add(well); freeze(well);
-  const quill = new THREE.Group(); quill.position.set(1.66, 0.15, -0.68); quill.rotation.set(-0.42, 0.5, -0.38); scene.add(quill);
+  const well = new THREE.Mesh(new THREE.LatheGeometry(prof, 48), glass); well.position.set(1.7, 0, -0.73); well.castShadow = true; scene.add(well); freeze(well);
+  const quill = new THREE.Group(); quill.position.set(1.7, 0.15, -0.73); quill.rotation.set(-0.42, 0.5, -0.38); scene.add(quill);
   const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.002, 0.62, 8), new THREE.MeshStandardMaterial({ color: 0xd8ccb0, roughness: 0.5 }));
   shaft.position.y = 0.26; quill.add(shaft);
   const fm = new THREE.MeshStandardMaterial({ map: featherTexture(), transparent: true, alphaTest: 0.25, side: THREE.DoubleSide, roughness: 0.8 });
@@ -325,7 +329,7 @@ export function buildProps() {
   cx.beginPath(); for (let a = 0; a < 40; a += 0.1) { const r = a * 1.5; cx.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } cx.stroke();
   const capT = new THREE.CanvasTexture(capc); capT.colorSpace = THREE.SRGBColorSpace; const capM = new THREE.MeshStandardMaterial({ map: capT, roughness: 0.9 });
   const scroll = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.72, 40), [parch, capM, capM]);
-  scroll.rotation.set(0, 0.45, Math.PI / 2); scroll.position.set(1.55, 0.045, 0.62); scroll.castShadow = true; scroll.receiveShadow = true; scene.add(scroll);
+  scroll.rotation.set(0, 0.45, Math.PI / 2); scroll.position.set(1.55, 0.045, 0.78); scroll.castShadow = true; scroll.receiveShadow = true; scene.add(scroll);
   const tie = new THREE.Mesh(new THREE.CylinderGeometry(0.0458, 0.0458, 0.022, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x8f1d16, roughness: 0.6, side: THREE.DoubleSide }));
   tie.position.copy(scroll.position); tie.rotation.copy(scroll.rotation); scene.add(tie); scroll.attach(tie); freezeKids(scroll);
   interactive('scroll', [scroll], () => ACTIONS.scroll(scroll));
@@ -442,7 +446,7 @@ export function buildParticles() {
   for (let i = 0; i < N; i++) { pos[i * 3] = -2.3 + Math.random() * 4.6; pos[i * 3 + 1] = 0.05 + Math.random() * 1.5; pos[i * 3 + 2] = -1.8 + Math.random() * 3.2; seed[i] = Math.random(); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
   const m = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uLight: { value: new THREE.Vector3(CANDLE.x, 0.5 + CL, CANDLE.z) }, uOn: { value: 0 }, uPR: { value: renderer.getPixelRatio() } },
+    uniforms: { uTime: { value: 0 }, uLight: { value: new THREE.Vector3(CANDLE.x, 0.5 * CK + CL, CANDLE.z) }, uOn: { value: 0 }, uPR: { value: renderer.getPixelRatio() } },
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: `uniform float uTime; uniform vec3 uLight; uniform float uPR; attribute float aSeed; varying float vB;
       void main(){ vec3 p = position;
@@ -528,7 +532,7 @@ export function animateDrolleries(t, dt) {
   }
 }
 
-export function poseIntro() { return { p: new THREE.Vector3(CANDLE.x + 0.5, 0.62 + CL, CANDLE.z + 0.72), t: new THREE.Vector3(CANDLE.x, 0.47 + CL, CANDLE.z) }; }
+export function poseIntro() { return { p: new THREE.Vector3(CANDLE.x + 0.5 * CK, 0.62 * CK + CL, CANDLE.z + 0.72 * CK), t: new THREE.Vector3(CANDLE.x, 0.47 * CK + CL, CANDLE.z) }; }
 export function poseClosed() {
   const a = innerWidth / innerHeight;
   if (a < 0.8) return { p: new THREE.Vector3(0.55, 2.3, 3.6), t: new THREE.Vector3(0.5, 0.22, -0.2) };
@@ -583,7 +587,7 @@ export function frame(now) {
   candleLight.intensity = LIGHT_MAX * fx.light * fl * (1 + flare.v * 0.9);
   flameMat.uniforms.uTime.value = t; flameMat.uniforms.uPower.value = fx.flame;
   const fs = Math.max(0.001, fx.flame) * (0.95 + 0.08 * fl) * (1 + flare.v * 0.55);
-  flame.scale.set(fs, fs * (0.96 + 0.1 * (fl - 0.86)), fs);
+  flame.scale.set(fs * CK, fs * CK * (0.96 + 0.1 * (fl - 0.86)), fs * CK);
   flame.lookAt(camera.position);
   glow.material.opacity = 0.4 * fx.flame * fl * (1 + flare.v); halo.material.opacity = 0.07 * fx.flame * fl;
   scene.userData.candleGroup.userData.wax.color.setScalar(0.12 + 0.88 * fx.light * (0.9 + 0.1 * fl));
@@ -594,7 +598,7 @@ export function frame(now) {
     const ep = embers.geometry.attributes.position.array;
     emberData.forEach((e, i) => {
       e.life += dt * e.speed * (1 + flare.v * 3); if (e.life > 1) { e.life = 0; e.ox = (Math.random() - 0.5) * 0.02; e.oz = (Math.random() - 0.5) * 0.02; }
-      ep[i * 3] = CANDLE.x + e.ox + Math.sin(t * 2 + e.ph) * 0.03 * e.life; ep[i * 3 + 1] = 0.56 + CL + e.life * 0.9; ep[i * 3 + 2] = CANDLE.z + e.oz + Math.cos(t * 1.7 + e.ph) * 0.03 * e.life;
+      ep[i * 3] = CANDLE.x + e.ox + Math.sin(t * 2 + e.ph) * 0.03 * e.life; ep[i * 3 + 1] = 0.56 * CK + CL + e.life * 0.9; ep[i * 3 + 2] = CANDLE.z + e.oz + Math.cos(t * 1.7 + e.ph) * 0.03 * e.life;
     });
     embers.geometry.attributes.position.needsUpdate = true;
   }
@@ -876,7 +880,7 @@ export function loadModels() {
       const box = new THREE.Box3().setFromObject(g, true);
       g.position.set(P.pos[0], P.pos[1] - box.min.y, P.pos[2]);
       scene.add(g); freezeKids(g); settle(g);
-      const key = { ornate_medieval_dagger: 'dagger', brass_goblets: 'goblet', food_apple_01: 'apple', treasure_chest: 'chest', met_penbox: 'penbox' }[P.id];
+      const key = { ornate_medieval_dagger: 'dagger', brass_goblets: 'goblet', food_apple_01: 'apple', treasure_chest: 'chest', met_penbox: 'penbox', met_helmet: 'helmet' }[P.id];
       if (key === 'chest') {
         const lid = root.getObjectByName('treasure_chest_lid');
         if (lid) { lid.matrixAutoUpdate = true; lid.userData.x0 = lid.rotation.x; g.userData.lid = lid; }

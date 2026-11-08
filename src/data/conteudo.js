@@ -12,7 +12,7 @@ export const SITE = {
     { label: 'PlayStation', url: 'https://profile.playstation.com/GorilaAsz' },
     { label: 'Steam', url: 'https://steamcommunity.com/profiles/76561199046482083/' }
   ],
-  level: 25,
+  level: 1,
   arms: ['Sankhya', 'Java', 'TypeScript', 'Angular', 'Oracle', 'MySQL'],
   works: [
     { tools: ['Java', 'TypeScript', 'Angular', 'Oracle', 'MySQL'] },
@@ -97,6 +97,7 @@ export const TEXT = {
       psalter: ['Folha de um saltério real', 'Século XIII'],
       window: ['Janela sobre o mar', 'Tocai para fechar e abrir os postigos'],
       relief: ['Agnus Dei e querubim', 'Relevo em mármore, Catalunha, cerca de 1140'],
+      helmet: ['Elmo de Henrique II de França', 'Aço gravado e dourado, cerca de 1555. Tocai para o fazer tinir'],
       arms: ['Maça e martelo de guerra', 'Armas de um cavaleiro, penduradas na parede']
     },
     book: {
@@ -115,9 +116,9 @@ export const TEXT = {
       fields: [['Alcunha', 'GorilaAs'], ['Idade', 'Vinte e cinco invernos'], ['Ofício', 'Full stack júnior'], ['Línguas', 'Português; inglês de aprendiz']],
       level: 'Nível',
       arms: 'Armas do ofício',
-      sheetNote: 'O nível conta-se em invernos vividos.',
+      sheetNote: 'O nível conta-se em invernos de ofício.',
       works: [
-        { title: 'Ofício de desenvolvedor', when: 'Hoje', text: 'Sirvo como full stack júnior: lavro telas em Angular e TypeScript, regras em Java e consultas em Oracle e MySQL, tudo em torno do ERP Sankhya.' },
+        { title: 'Ofício de desenvolvedor', when: 'Hoje', text: 'Há um ano sirvo como full stack júnior: lavro telas em Angular e TypeScript, regras em Java e consultas em Oracle e MySQL, tudo em torno do ERP Sankhya.' },
         { title: 'Este grimório', when: 'MMXXVI', text: 'Livro de três dimensões feito para guardar quem sou. Cada folha vira com o arrastar da mão.' },
         { title: 'Outras obras', when: '', text: 'Os demais trabalhos estão guardados no GitHub, sob a alcunha GorilAas.' }
       ],
@@ -200,6 +201,7 @@ export const TEXT = {
       psalter: ['Leaf from a royal psalter', '13th century'],
       window: ['Window upon the sea', 'Touch to close and open the shutters'],
       relief: ['Agnus Dei and cherub', 'Marble relief, Catalonia, about 1140'],
+      helmet: ['Helmet of Henry II of France', 'Etched and gilded steel, about 1555. Touch to make it ring'],
       arms: ['Mace and war hammer', 'A knight’s arms, hung upon the wall']
     },
     book: {
@@ -218,9 +220,9 @@ export const TEXT = {
       fields: [['Byname', 'GorilaAs'], ['Age', 'Five and twenty winters'], ['Craft', 'Junior full stack'], ['Tongues', 'Portuguese; English as a learner']],
       level: 'Level',
       arms: 'Arms of the craft',
-      sheetNote: 'The level is counted in winters lived.',
+      sheetNote: 'The level is counted in winters of the craft.',
       works: [
-        { title: 'The developer’s craft', when: 'Today', text: 'I serve as a junior full stack: screens in Angular and TypeScript, rules in Java and queries in Oracle and MySQL, all around the Sankhya ERP.' },
+        { title: 'The developer’s craft', when: 'Today', text: 'For a year now I have served as a junior full stack: screens in Angular and TypeScript, rules in Java and queries in Oracle and MySQL, all around the Sankhya ERP.' },
         { title: 'This grimoire', when: 'MMXXVI', text: 'A book in three dimensions made to keep who I am. Every leaf turneth with a stroke of the hand.' },
         { title: 'Other works', when: '', text: 'My other labours are kept on GitHub, under the byname GorilAas.' }
       ],
@@ -303,6 +305,7 @@ export const TEXT = {
       psalter: ['Hoja de un salterio real', 'Siglo XIII'],
       window: ['Ventana sobre el mar', 'Tocad para cerrar y abrir los postigos'],
       relief: ['Agnus Dei y querubín', 'Relieve en mármol, Cataluña, hacia 1140'],
+      helmet: ['Yelmo de Enrique II de Francia', 'Acero grabado y dorado, hacia 1555. Tocad para hacerlo sonar'],
       arms: ['Maza y martillo de guerra', 'Armas de un caballero, colgadas en la pared']
     },
     book: {
@@ -321,9 +324,9 @@ export const TEXT = {
       fields: [['Alias', 'GorilaAs'], ['Edad', 'Veinticinco inviernos'], ['Oficio', 'Full stack júnior'], ['Lenguas', 'Portugués; inglés de aprendiz']],
       level: 'Nivel',
       arms: 'Armas del oficio',
-      sheetNote: 'El nivel se cuenta en inviernos vividos.',
+      sheetNote: 'El nivel se cuenta en inviernos de oficio.',
       works: [
-        { title: 'Oficio de desarrollador', when: 'Hoy', text: 'Sirvo como full stack júnior: labro pantallas en Angular y TypeScript, reglas en Java y consultas en Oracle y MySQL, todo en torno al ERP Sankhya.' },
+        { title: 'Oficio de desarrollador', when: 'Hoy', text: 'Desde hace un año sirvo como full stack júnior: labro pantallas en Angular y TypeScript, reglas en Java y consultas en Oracle y MySQL, todo en torno al ERP Sankhya.' },
         { title: 'Este grimorio', when: 'MMXXVI', text: 'Libro de tres dimensiones hecho para guardar quién soy. Cada hoja pasa con el arrastre de la mano.' },
         { title: 'Otras obras', when: '', text: 'Los demás trabajos están guardados en GitHub, bajo el alias GorilAas.' }
       ],

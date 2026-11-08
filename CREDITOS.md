@@ -9,6 +9,7 @@ Quase tudo no site é de domínio público ou CC0. As exceções são três mús
 Escaneamentos 3D:
 - **Castiçal de latão**, Egito ou Síria, 1ª metade do séc. XIV. Segura a vela. https://www.metmuseum.org/art/collection/search/444585
 - **Estojo de penas com inscrições**, Afeganistão, séc. XIV. https://www.metmuseum.org/art/collection/search/444536
+- **Elmo da armadura de Henrique II de França**, aço gravado e dourado, c. 1555. Recortado do escaneamento da armadura completa. https://www.metmuseum.org/art/collection/search/24671
 - **Relevo do Agnus Dei e querubim**, mármore, Catalunha, c. 1140–1150 (The Cloisters). Na parede, à esquerda da janela. https://www.metmuseum.org/art/collection/search/470771
 
 Folhas de manuscrito:
@@ -24,6 +25,8 @@ Folhas de manuscrito:
 - **Dois cavaleiros em justa**, Saltério de Luttrell, c. 1325–1335 (British Library, Add MS 42130, f.82), CC0. https://commons.wikimedia.org/wiki/File:Two_knights_Jousting_-_Luttrell_Psalter_(c.1325-1335),_f.82_-_BL_Add_MS_42130.jpg
 - **Cavaleiro sobre peixe (grylle)**, Breviário de Renaud de Bar. https://commons.wikimedia.org/wiki/File:Breviaire_Renaud_de_Bar_grylle_chevalier-poisson.jpg
 - **Bufão-centauro**, drollery. https://commons.wikimedia.org/wiki/File:Drollery-detail-jester-centaur.jpg
+
+Todos os objetos estão no tamanho real, tomando a página do livro (cerca de 33 × 45 cm) como medida.
 
 ## Modelos e texturas (Poly Haven, CC0)
 - Adaga medieval ornamentada, cálice de latão, baú do tesouro e maçã. https://polyhaven.com/models
