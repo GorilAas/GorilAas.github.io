@@ -8,7 +8,7 @@ import { audio } from '../audio/audio.js';
 import { mk, MOTTLE, UH } from '../book/canvas.js';
 import { coverTextures, LINK_RECTS, PAGES, pageTexture } from '../book/pages.js';
 import { ASSETS, gltfLoader } from '../core/assets.js';
-import { $, ANISO, CALM, gsap, LOW, setAniso, SMALL } from '../core/env.js';
+import { $, ANISO, CALM, COARSE, gsap, LOW, setAniso, SMALL } from '../core/env.js';
 import { T } from '../core/i18n.js';
 import { clamp, lerp, smooth, vnoise } from '../core/math.js';
 import { SITE } from '../data/conteudo.js';
@@ -29,6 +29,10 @@ export let coverGroup, spine, sealGroup, sealHalves = [], ribbonMat, leaves = []
 export let PR = 1, PR_MAX = 1, sea = null;
 export const camState = { px: 0, py: 0, pz: 0, tx: 0, ty: 0, tz: 0 };
 export const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
+export const look = { yaw: 0, pitch: 0, ty: 0, tp: 0 };
+let lookDrag = null;
+const V_Y = new THREE.Vector3(0, 1, 0), lookDir = new THREE.Vector3(), lookRight = new THREE.Vector3();
+export const canLook = () => isPortrait() || COARSE;
 export const cover = { a: 0 };
 export const fx = { light: 0, flame: 0, dust: 0, env: 0 };
 export let state = 'loading', spread = 1, readSide = 'right', drag = null, busy = 0;
@@ -228,15 +232,15 @@ export function buildDesk() {
   let m;
   if (ASSETS.wood) {
     const { diff, nor, rough } = ASSETS.wood;
-    for (const t of [diff, nor, rough]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.6, 2.0); t.anisotropy = ANISO; }
+    for (const t of [diff, nor, rough]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4.05, 2.0); t.anisotropy = ANISO; }
     diff.colorSpace = THREE.SRGBColorSpace;
     m = new THREE.MeshStandardMaterial({ map: diff, normalMap: nor, normalScale: new THREE.Vector2(1.2, 1.2), roughnessMap: rough, roughness: 1, metalness: 0, color: 0xc29b7c });
   } else {
     const wood = woodTextures();
-    wood.map.repeat.set(1.2, 1.6); wood.bump.repeat.copy(wood.map.repeat);
+    wood.map.repeat.set(1.87, 1.6); wood.bump.repeat.copy(wood.map.repeat);
     m = new THREE.MeshStandardMaterial({ map: wood.map, bumpMap: wood.bump, bumpScale: 1.2, roughness: 0.72, metalness: 0 });
   }
-  const desk = new THREE.Mesh(new THREE.PlaneGeometry(9, 6.2), m);
+  const desk = new THREE.Mesh(new THREE.PlaneGeometry(14, 6.2), m);
   desk.rotation.x = -Math.PI / 2; desk.position.z = 0.4; desk.receiveShadow = true; scene.add(desk); freeze(desk);
 }
 
@@ -526,7 +530,7 @@ export function animateDrolleries(t, dt) {
 export function poseIntro() { return { p: new THREE.Vector3(CANDLE.x + 0.5, 0.62 + CL, CANDLE.z + 0.72), t: new THREE.Vector3(CANDLE.x, 0.47 + CL, CANDLE.z) }; }
 export function poseClosed() {
   const a = innerWidth / innerHeight;
-  if (a < 0.8) { const d = 2.05 / a; return { p: new THREE.Vector3(0.62, 0.12 + d * 0.72, 0.1 + d * 0.62), t: new THREE.Vector3(0.48, 0.12, 0.02) }; }
+  if (a < 0.8) return { p: new THREE.Vector3(0.55, 2.3, 3.6), t: new THREE.Vector3(0.5, 0.22, -0.2) };
   if (a < 1.2) return { p: new THREE.Vector3(1.4, 2.05, 4.45), t: new THREE.Vector3(0.14, 0.5, -0.95) };
   return { p: new THREE.Vector3(1.15, 1.72, 3.45), t: new THREE.Vector3(0.18, 0.56, -1.0) };
 }
@@ -607,7 +611,11 @@ export function frame(now) {
   pointer.sx += (pointer.x - pointer.sx) * 0.05; pointer.sy += (pointer.y - pointer.sy) * 0.05;
   const par = CALM || drag ? 0 : (state === 'reading' ? 0.05 : 0.12);
   camera.position.set(camState.px + pointer.sx * par, camState.py - pointer.sy * par * 0.6, camState.pz);
-  camera.lookAt(camState.tx, camState.ty, camState.tz);
+  if (state !== 'closed' && state !== 'away') look.ty = look.tp = 0;
+  look.yaw += (look.ty - look.yaw) * 0.12; look.pitch += (look.tp - look.pitch) * 0.12;
+  lookDir.set(camState.tx - camState.px, camState.ty - camState.py, camState.tz - camState.pz);
+  if (Math.abs(look.yaw) > 1e-4 || Math.abs(look.pitch) > 1e-4) { lookDir.applyAxisAngle(V_Y, look.yaw); lookDir.applyAxisAngle(lookRight.crossVectors(lookDir, V_Y).normalize(), look.pitch); }
+  camera.lookAt(camera.position.x + lookDir.x, camera.position.y + lookDir.y, camera.position.z + lookDir.z);
   if (shadowFrames > 0) { renderer.shadowMap.needsUpdate = true; shadowFrames--; }
   composer.render();
   requestAnimationFrame(frame);
@@ -682,9 +690,18 @@ export function goTo(target, side) {
 }
 export function afterChange() { if (hintKey === 'read') hideHint(); updateHUD(); }
 
+function tapRoom(e, touch) {
+  if (state === 'closed' && overSeal(e.clientX, e.clientY)) { hideTip(); openBook(); return; }
+  if (state === 'away' && overBook(e.clientX, e.clientY)) { backToBook(); return; }
+  const it = propAt(e.clientX, e.clientY); if (it) { poke(it); if (touch) showTip(it, e.clientX, e.clientY, 2200); }
+}
 export function onDown(e) {
   pointer.down = { x: e.clientX, y: e.clientY };
   const touch = e.pointerType !== 'mouse';
+  if ((state === 'closed' || state === 'away') && canLook()) {
+    lookDrag = { x: e.clientX, y: e.clientY, yaw: look.ty, pitch: look.tp, moved: false, touch };
+    $('#gl').setPointerCapture(e.pointerId); return;
+  }
   if (state === 'closed') {
     if (overSeal(e.clientX, e.clientY)) { hideTip(); openBook(); return; }
     const it = propAt(e.clientX, e.clientY); if (it) { poke(it); if (touch) showTip(it, e.clientX, e.clientY, 2200); }
@@ -709,6 +726,12 @@ export function onDown(e) {
   if (drag) { $('#gl').setPointerCapture(e.pointerId); gsap.killTweensOf(drag.L); document.body.style.cursor = 'grabbing'; }
 }
 export function onMove(e) {
+  if (lookDrag) {
+    const dx = e.clientX - lookDrag.x, dy = e.clientY - lookDrag.y;
+    if (!lookDrag.moved && Math.hypot(dx, dy) > 8) { lookDrag.moved = true; hideTip(); }
+    if (lookDrag.moved) { look.ty = clamp(lookDrag.yaw + dx * 0.0035, -0.5, 0.5); look.tp = clamp(lookDrag.pitch + dy * 0.003, -0.15, 0.45); }
+    return;
+  }
   pointer.x = (e.clientX / innerWidth) * 2 - 1; pointer.y = (e.clientY / innerHeight) * 2 - 1;
   if (drag) {
     if (!drag.moved && Math.hypot(e.clientX - pointer.down.x, e.clientY - pointer.down.y) > 8) { drag.moved = true; drag.L.k = clamp(drag.kz, -1, 1); audio.flip(); }
@@ -733,6 +756,7 @@ export function onMove(e) {
   if (state === 'closed') for (const h of sealHalves) h.material[1].emissive?.setRGB(sealHover ? 0.25 : 0, sealHover ? 0.03 : 0, 0);
 }
 export function onUp(e) {
+  if (lookDrag) { const d = lookDrag; lookDrag = null; if (!d.moved && (state === 'closed' || state === 'away')) tapRoom(e, d.touch); return; }
   if (pointer.link) {
     const l = pointer.link; pointer.link = null;
     if (pointer.down && Math.hypot(e.clientX - pointer.down.x, e.clientY - pointer.down.y) < 10) openLink(l.url);
@@ -826,7 +850,7 @@ export function loadModels() {
   const loader = gltfLoader(), jobs = [];
   let wallDone = null;
   const loadRoom = () => {
-    if (wallDone || isPortrait()) return wallDone;
+    if (wallDone) return wallDone;
     wallDone = Promise.all([sea.loadOutside(), ...WALL.map((P) => loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
       const root = gltf.scene, g = new THREE.Group(), inner = new THREE.Group(); inner.add(root); g.add(inner);
       root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material.map) o.material.map.anisotropy = ANISO; } });
@@ -839,7 +863,6 @@ export function loadModels() {
     }).catch(() => {}))]).then(() => renderer.compileAsync(scene, camera)).then(warmup).catch(() => {});
     return wallDone;
   };
-  loadRoom(); addEventListener('resize', loadRoom);
   for (const P of PROPS) {
     jobs.push(loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
       const root = gltf.scene;
@@ -861,5 +884,7 @@ export function loadModels() {
       if (key) interactive(key, [g], () => ACTIONS[key](g));
     }).catch(() => {}));
   }
-  return Promise.all(jobs);
+  const main = Promise.all(jobs);
+  if (isPortrait()) main.then(loadRoom); else loadRoom();
+  return main;
 }

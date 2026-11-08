@@ -4,7 +4,7 @@ import { PAGE_TEX, paintCover, paintPage } from '../book/pages.js';
 import { $, COARSE } from '../core/env.js';
 import { B, fmt, LANG, setLanguage, T } from '../core/i18n.js';
 import { SITE, TEXT } from '../data/conteudo.js';
-import { backToBook, goTo, isPortrait, LAST, lookUp, next, onDown, onMove, onUp, openBook, prev, readSide, spread, state } from '../scene/world.js';
+import { backToBook, canLook, goTo, isPortrait, LAST, lookUp, next, onDown, onMove, onUp, openBook, prev, readSide, spread, state } from '../scene/world.js';
 
 export let hintKey = null;
 export const CHAPTERS = [
@@ -18,7 +18,8 @@ export function showHint(key) { hintKey = key; renderHint(); show('#hint'); }
 export function hideHint() { hintKey = null; hide('#hint'); }
 export function renderHint() {
   if (!hintKey) return; const u = T().ui;
-  $('#hint').textContent = hintKey === 'seal' ? (COARSE ? u.sealTouch : u.sealMouse) : hintKey === 'away' ? (COARSE ? u.awayTouch : u.awayMouse) : (COARSE ? u.readTouch : u.readMouse);
+  const L = canLook();
+  $('#hint').textContent = hintKey === 'seal' ? (L ? u.sealLook : COARSE ? u.sealTouch : u.sealMouse) : hintKey === 'away' ? (L ? u.awayLook : COARSE ? u.awayTouch : u.awayMouse) : (COARSE ? u.readTouch : u.readMouse);
 }
 export function renderLook() {
   const b = $('#look'), u = T().ui;

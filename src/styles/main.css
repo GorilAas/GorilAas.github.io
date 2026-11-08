@@ -23,13 +23,13 @@ button{font:inherit;color:inherit}
 #intro.gone{opacity:0;visibility:hidden}
 #intro .incipit{opacity:0;animation:fadein 1s .1s forwards;margin:0;color:#c4473b;font-family:var(--f-sc);font-size:clamp(1rem,2.4vw,1.2rem);letter-spacing:.01em}
 #intro h1{font-family:var(--f-black);font-weight:400;margin:.1em 0 .55em;line-height:1;font-size:clamp(4rem, 14vw, 9rem);color:#d8c193}
-#intro h1 .ch{display:inline-block;opacity:0;filter:blur(10px);transform:translateY(.1em) scale(1.08);animation:ink 1.1s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(.25s + var(--i) * .09s)}
+#intro h1 .ch{display:inline-block;opacity:0;transform:translateY(.16em) scale(1.14);will-change:transform,opacity;animation:ink 1.1s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(.25s + var(--i) * .09s)}
 #intro h1 .g{display:inline-block;--k:0;transform:translateY(calc(var(--k) * -.1em)) rotate(calc(var(--k) * -2deg));color:color-mix(in srgb, #f2cf78 calc(var(--k) * 100%), #d8c193);text-shadow:0 0 calc(var(--k) * 26px) rgba(255,170,70,.55);transition:transform .25s, color .25s, text-shadow .25s}
 #intro h1 .ini{font-family:"Lombarda Ghotan", var(--f-black);font-size:1.12em;margin-right:.02em}
 #intro h1 .ini .g{color:color-mix(in srgb, #f2a35a calc(var(--k) * 100%), #b3362c)}
 #intro h1.burn .ch{animation:burn 1.1s ease-in forwards;animation-delay:calc(var(--i) * .06s)}
 #intro h1.burn .g{color:#ffcf73;text-shadow:0 0 18px #ff9a3c, 0 0 3px #fff3c4;transition:color .25s, text-shadow .25s}
-@keyframes ink{60%{filter:blur(1.5px)}to{opacity:1;filter:blur(0);transform:none}}
+@keyframes ink{55%{opacity:.9}to{opacity:1;transform:none}}
 @keyframes burn{0%{opacity:1;transform:none}40%{opacity:1}100%{opacity:0;transform:translateY(-.55em) scale(.95)}}
 @keyframes fadein{to{opacity:1}}
 #ignite{opacity:0;animation:fadein .9s 1.3s forwards;position:relative;display:flex;flex-direction:column;align-items:center;gap:.55rem;background:none;border:0;padding:.4rem 1.2rem;cursor:pointer;color:#cdb58a}
