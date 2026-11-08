@@ -640,6 +640,24 @@ function cullLeaves() {
     if (show) { L.dirty = true; bumpShadows(2); } else L.group.children.forEach((m) => m.material.map && m.material.map.dispose());
   }
 }
+export function warmup() {
+  const queue = [], seen = new Set();
+  scene.traverseVisible((o) => {
+    if (!o.material) return;
+    for (const m of [].concat(o.material)) for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'bumpMap', 'alphaMap', 'emissiveMap']) {
+      const t = m[k]; if (t && !seen.has(t.uuid)) { seen.add(t.uuid); queue.push(t); }
+    }
+  });
+  const idle = window.requestIdleCallback || ((f) => setTimeout(() => f({ timeRemaining: () => 8 }), 16));
+  return new Promise((done) => {
+    const step = (dl) => {
+      let n = 0;
+      while (queue.length && (n++ < 1 || dl.timeRemaining() > 6)) renderer.initTexture(queue.shift());
+      if (queue.length) idle(step); else { bumpShadows(2); done(); }
+    };
+    idle(step);
+  });
+}
 export function flipForward(delay = 0, dur) { if (spread >= LAST) return false; animateLeaf(leaves[spread - 1], 1, dur, delay); spread++; return true; }
 export function flipBack(delay = 0, dur) { if (spread <= 1) return false; spread--; animateLeaf(leaves[spread - 1], 0, dur, delay); return true; }
 export function next() {
@@ -762,7 +780,7 @@ export function openBook() {
   gsap.to(h2.rotation, { z: -1.1, x: 0.5, duration: dur });
   const fade = [...h1.material, ...h2.material, ribbonMat];
   gsap.to(fade, { opacity: 0, duration: dur * 0.5, delay: dur * 0.55, onComplete: () => { sealGroup.visible = false; scene.userData.ribbon.forEach((r) => (r.visible = false)); bumpShadows(2); } });
-  readSide = 'right';
+  readSide = isPortrait() ? 'left' : 'right';
   gsap.to(cover, { a: 1, duration: 2.0, delay: 0.55, ease: 'power2.inOut', onStart: () => audio.flip(), onComplete: () => audio.thud() });
   setPose(poseReading(), 2.6, 'power2.inOut', 0.4);
   gsap.delayedCall(2.8, () => {
@@ -818,7 +836,7 @@ export function loadModels() {
       b = new THREE.Box3().setFromObject(g, true);
       g.position.set(P.pos[0], P.pos[1], WIN.z + 0.004 - b.min.z); freeze(g); bumpShadows(3);
       if (P.key) interactive(P.key, [g], () => ACTIONS.wall(g));
-    }).catch(() => {}))]).then(() => renderer.compileAsync(scene, camera)).catch(() => {});
+    }).catch(() => {}))]).then(() => renderer.compileAsync(scene, camera)).then(warmup).catch(() => {});
     return wallDone;
   };
   loadRoom(); addEventListener('resize', loadRoom);
