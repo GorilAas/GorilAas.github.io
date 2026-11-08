@@ -16,6 +16,7 @@ import { DROLL, LEAVES, PROPS, WALL } from './layout.js';
 import { buildWindow, WIN } from './window.js';
 import { featherTexture, glowTexture, leatherSideTexture, pageEdgeTexture, sealTextures, woodTextures } from './materials.js';
 import { hide, hideHint, hintKey, renderLook, show, showHint, updateHUD } from '../ui/hud.js';
+import { task } from '../ui/loader.js';
 
 export const W = 1.0, H = 1.36, WC = 1.05, HC = 1.42, TC = 0.035, TB = 0.075, EPS = 0.0035, NL = 6, LAST = NL + 1, SEG = 40, SEGZ = 14;
 export const BASE = TC + TB;
@@ -851,7 +852,7 @@ export function loadModels() {
   let wallDone = null;
   const loadRoom = () => {
     if (wallDone) return wallDone;
-    wallDone = Promise.all([sea.loadOutside(), ...WALL.map((P) => loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
+    wallDone = Promise.all([task(sea.loadOutside()), ...WALL.map((P) => task(loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
       const root = gltf.scene, g = new THREE.Group(), inner = new THREE.Group(); inner.add(root); g.add(inner);
       root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material.map) o.material.map.anisotropy = ANISO; } });
       let b = new THREE.Box3().setFromObject(root, true); const sz = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
@@ -860,11 +861,11 @@ export function loadModels() {
       b = new THREE.Box3().setFromObject(g, true);
       g.position.set(P.pos[0], P.pos[1], WIN.z + 0.004 - b.min.z); freeze(g); bumpShadows(3);
       if (P.key) interactive(P.key, [g], () => ACTIONS.wall(g));
-    }).catch(() => {}))]).then(() => renderer.compileAsync(scene, camera)).then(warmup).catch(() => {});
+    }).catch(() => {})))]);
     return wallDone;
   };
   for (const P of PROPS) {
-    jobs.push(loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
+    jobs.push(task(loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
       const root = gltf.scene;
       if (P.keep) { const keep = root.getObjectByName(P.keep); root.children.slice().forEach((c) => { if (c !== keep) root.remove(c); }); if (keep) keep.position.set(0, keep.position.y, 0); }
       root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material.map) o.material.map.anisotropy = ANISO; if (P.tame) { o.material.metalness *= P.tame; o.material.envMapIntensity = P.tame; } } });
@@ -882,9 +883,7 @@ export function loadModels() {
         const c = new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3()); chestGlow.position.set(c.x, box.max.y * 0.85, c.z);
       }
       if (key) interactive(key, [g], () => ACTIONS[key](g));
-    }).catch(() => {}));
+    }).catch(() => {})));
   }
-  const main = Promise.all(jobs);
-  if (isPortrait()) main.then(loadRoom); else loadRoom();
-  return main;
+  return Promise.all([...jobs, loadRoom()]);
 }

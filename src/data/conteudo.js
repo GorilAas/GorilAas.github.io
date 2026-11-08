@@ -58,6 +58,7 @@ export const TEXT = {
     ui: {
       ignite: 'Acender a vela',
       loading: 'Preparando a tinta…',
+      loaderLine: 'Aguardai um pouco, que o escriba prepara a tinta',
       silence: 'Em silêncio',
       mute: 'Silenciar a música',
       unmute: 'Tocar a música',
@@ -160,6 +161,7 @@ export const TEXT = {
     ui: {
       ignite: 'Light the candle',
       loading: 'Preparing the ink…',
+      loaderLine: 'Bide a while; the scribe prepareth the ink',
       silence: 'Silenced',
       mute: 'Silence the music',
       unmute: 'Play the music',
@@ -262,6 +264,7 @@ export const TEXT = {
     ui: {
       ignite: 'Encender la vela',
       loading: 'Preparando la tinta…',
+      loaderLine: 'Aguardad un poco, que el escriba prepara la tinta',
       silence: 'En silencio',
       mute: 'Silenciar la música',
       unmute: 'Tocar la música',

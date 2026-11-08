@@ -18,11 +18,21 @@
 </script>
 <link rel="stylesheet" href="src/styles/main.css">
 </head>
-<body>
+<body class="loading">
 <canvas id="gl" tabindex="0"></canvas>
 <div class="vignette" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
+<div id="loader" role="status" aria-live="polite">
+  <svg class="rota" viewBox="0 0 140 140" aria-hidden="true">
+    <g class="ring"><circle cx="70" cy="70" r="66"/><circle cx="70" cy="70" r="56"/><circle cx="70" cy="70" r="23"/></g>
+    <g class="dots"><circle cx="85.79" cy="11.08" r="1.6"/><circle cx="113.13" cy="26.87" r="1.6"/><circle cx="128.92" cy="54.21" r="1.6"/><circle cx="128.92" cy="85.79" r="1.6"/><circle cx="113.13" cy="113.13" r="1.6"/><circle cx="85.79" cy="128.92" r="1.6"/><circle cx="54.21" cy="128.92" r="1.6"/><circle cx="26.87" cy="113.13" r="1.6"/><circle cx="11.08" cy="85.79" r="1.6"/><circle cx="11.08" cy="54.21" r="1.6"/><circle cx="26.87" cy="26.87" r="1.6"/><circle cx="54.21" cy="11.08" r="1.6"/></g>
+    <g class="segs"><path class="seg" d="M71.45 18.02A52 52 0 0 1 94.73 24.26L82.84 46.25A27 27 0 0 0 70.75 43.01Z"/><path class="seg" d="M97.25 25.71A52 52 0 0 1 114.29 42.75L93.00 55.85A27 27 0 0 0 84.15 47.00Z"/><path class="seg" d="M115.74 45.27A52 52 0 0 1 121.98 68.55L96.99 69.25A27 27 0 0 0 93.75 57.16Z"/><path class="seg" d="M121.98 71.45A52 52 0 0 1 115.74 94.73L93.75 82.84A27 27 0 0 0 96.99 70.75Z"/><path class="seg" d="M114.29 97.25A52 52 0 0 1 97.25 114.29L84.15 93.00A27 27 0 0 0 93.00 84.15Z"/><path class="seg" d="M94.73 115.74A52 52 0 0 1 71.45 121.98L70.75 96.99A27 27 0 0 0 82.84 93.75Z"/><path class="seg" d="M68.55 121.98A52 52 0 0 1 45.27 115.74L57.16 93.75A27 27 0 0 0 69.25 96.99Z"/><path class="seg" d="M42.75 114.29A52 52 0 0 1 25.71 97.25L47.00 84.15A27 27 0 0 0 55.85 93.00Z"/><path class="seg" d="M24.26 94.73A52 52 0 0 1 18.02 71.45L43.01 70.75A27 27 0 0 0 46.25 82.84Z"/><path class="seg" d="M18.02 68.55A52 52 0 0 1 24.26 45.27L46.25 57.16A27 27 0 0 0 43.01 69.25Z"/><path class="seg" d="M25.71 42.75A52 52 0 0 1 42.75 25.71L55.85 47.00A27 27 0 0 0 47.00 55.85Z"/><path class="seg" d="M45.27 24.26A52 52 0 0 1 68.55 18.02L69.25 43.01A27 27 0 0 0 57.16 46.25Z"/></g>
+    <g class="rose"><ellipse cx="70" cy="58" rx="4.2" ry="10" transform="rotate(0 70 70)"/><ellipse cx="70" cy="58" rx="4.2" ry="10" transform="rotate(60 70 70)"/><ellipse cx="70" cy="58" rx="4.2" ry="10" transform="rotate(120 70 70)"/><ellipse cx="70" cy="58" rx="4.2" ry="10" transform="rotate(180 70 70)"/><ellipse cx="70" cy="58" rx="4.2" ry="10" transform="rotate(240 70 70)"/><ellipse cx="70" cy="58" rx="4.2" ry="10" transform="rotate(300 70 70)"/><circle cx="70" cy="70" r="3.4"/></g>
+  </svg>
+  <p id="loader-line"></p>
+  <p id="loader-count"></p>
+</div>
 <div id="intro">
   <p class="incipit" id="intro-pre"></p>
   <h1 id="intro-name">Guilherme</h1>

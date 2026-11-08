@@ -80,6 +80,7 @@ export function applyText() {
   document.documentElement.lang = t.htmlLang;
   document.title = fmt(t.title);
   $('#intro-pre').textContent = t.book.frontRubric;
+  $('#loader-line').textContent = u.loaderLine;
   $('#intro-name').innerHTML = [...SITE.name].map((c, i) => `<span class="ch${i === 0 ? ' ini' : ''}" style="--i:${i}"><span class="g">${esc(c)}</span></span>`).join('');
   $('#intro-name').setAttribute('aria-label', SITE.name);
   const btn = $('#ignite'); $('#ignite-label').textContent = btn.disabled ? u.loading : u.ignite; btn.setAttribute('aria-label', u.ignite);

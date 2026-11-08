@@ -42,9 +42,15 @@ export const audio = {
     f.type = 'highpass'; f.frequency.value = 1500 + Math.random() * 3000; this.env(g, t, 0.002, v, 0.02 + Math.random() * 0.05);
     s.connect(f).connect(g).connect(this.master); s.start(t, Math.random()); s.stop(t + 0.1);
   },
+  preload() {
+    const leaves = [1, 2, 3, 4].map((n) => fetch(`assets/audio/sfx/folha-${n}.mp3`).then((r) => r.arrayBuffer()).catch(() => null));
+    this.leafBytes = Promise.all(leaves);
+    const first = fetch(`assets/audio/${SITE.music[0].id}.mp3`).then((r) => r.arrayBuffer()).catch(() => null);
+    return Promise.all([this.leafBytes, first]);
+  },
   loadLeaves() {
     this.leaves = []; this.lastLeaf = -1;
-    [1, 2, 3, 4].forEach((n) => fetch(`assets/audio/sfx/folha-${n}.mp3`).then((r) => r.arrayBuffer()).then((b) => this.ctx.decodeAudioData(b)).then((d) => this.leaves.push(d)).catch(() => {}));
+    (this.leafBytes || this.preload().then(() => this.leafBytes)).then((all) => all.forEach((b) => { if (b) this.ctx.decodeAudioData(b.slice(0)).then((d) => this.leaves.push(d)).catch(() => {}); }));
   },
   flip() {
     if (!this.ctx) return;
