@@ -11,7 +11,7 @@ async function boot() {
   try {
     buildBaseTextures();
     init();
-    loadModels();
+    loadModels().then(() => renderer.compileAsync(scene, camera)).catch(() => {});
   } catch (err) {
     console.error(err);
     document.body.classList.add('no-gl'); $('#a11y').classList.add('fallback'); return;

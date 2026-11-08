@@ -51,7 +51,7 @@ assets/
   fonts/                   fontes textura e lombarda (OFL)
   images/                  manuscritos, retrato e drolleries
   models/                  modelos 3D (GLB)
-  textures/                madeira e couro
+  textures/                madeira, couro e pedra (subpasta 512/: versões leves para celular)
   lib/draco/               decodificador dos modelos comprimidos
 ```
 

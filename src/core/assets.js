@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { F_BL, F_IN, F_SC, F_TX } from '../book/canvas.js';
-import { wait } from './env.js';
+import { LOW, wait } from './env.js';
 import { DROLL, LEAVES } from '../scene/layout.js';
 
 export let DRACO;
@@ -21,7 +21,7 @@ export async function loadTextures() {
   const tl = new THREE.TextureLoader();
   const set = async (name, dir) => {
     try {
-      const [diff, nor, rough] = await Promise.all(['diffuse', 'nor_gl', 'rough'].map((f) => tl.loadAsync(`assets/textures/${dir}/${f}.jpg`)));
+      const [diff, nor, rough] = await Promise.all(['diffuse', 'nor_gl', 'rough'].map((f) => tl.loadAsync(`assets/textures/${dir}${LOW && dir !== 'wood-table-worn' ? '/512' : ''}/${f}.jpg`)));
       ASSETS[name] = { diff, nor, rough };
     } catch (e) {}
   };

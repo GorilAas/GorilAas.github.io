@@ -8,7 +8,7 @@ import { audio } from '../audio/audio.js';
 import { mk, MOTTLE, UH } from '../book/canvas.js';
 import { coverTextures, LINK_RECTS, PAGES, pageTexture } from '../book/pages.js';
 import { ASSETS, gltfLoader } from '../core/assets.js';
-import { $, ANISO, CALM, gsap, setAniso, SMALL } from '../core/env.js';
+import { $, ANISO, CALM, gsap, LOW, setAniso, SMALL } from '../core/env.js';
 import { T } from '../core/i18n.js';
 import { clamp, lerp, smooth, vnoise } from '../core/math.js';
 import { SITE } from '../data/conteudo.js';
@@ -179,11 +179,11 @@ export const ACTIONS = {
 export function init() {
   const canvas = $('#gl');
   renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-  PR_MAX = Math.min(devicePixelRatio || 1, SMALL ? 1.5 : 1.75); PR = PR_MAX;
+  PR_MAX = Math.min(devicePixelRatio || 1, LOW ? 1.5 : 1.75); PR = PR_MAX;
   renderer.setPixelRatio(PR); renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.25;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;
-  setAniso(Math.min(8, renderer.capabilities.getMaxAnisotropy()));
+  setAniso(Math.min(LOW ? 4 : 8, renderer.capabilities.getMaxAnisotropy()));
   CL = ASSETS.stick ? ASSETS.stickTop - 0.075 : 0;
 
   scene = new THREE.Scene();
@@ -199,7 +199,7 @@ export function init() {
   candleLight = new THREE.PointLight(0xffa458, 0, 0, 2);
   candleLight.position.set(CANDLE.x, 0.5 + CL, CANDLE.z);
   candleLight.castShadow = true;
-  candleLight.shadow.mapSize.set(SMALL ? 512 : 1024, SMALL ? 512 : 1024);
+  candleLight.shadow.mapSize.set(LOW ? 512 : 1024, LOW ? 512 : 1024);
   candleLight.shadow.bias = -0.002; candleLight.shadow.normalBias = 0.02;
   candleLight.shadow.camera.near = 0.03; candleLight.shadow.camera.far = 8;
   scene.add(candleLight);
@@ -215,7 +215,8 @@ export function init() {
   composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(PR); composer.setSize(innerWidth, innerHeight);
   composer.addPass(new RenderPass(scene, camera));
-  bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.6, 0.92);
+  bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.55, 0.6, 0.92);
+  const bloomSize = bloom.setSize.bind(bloom); bloom.setSize = (w, h) => bloomSize(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(h / 2)));
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
@@ -794,9 +795,11 @@ export function buildLooseLeaves() {
   }
 }
 export function loadModels() {
-  const loader = gltfLoader();
-  for (const P of WALL) {
-    loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
+  const loader = gltfLoader(), jobs = [];
+  let wallDone = null;
+  const loadRoom = () => {
+    if (wallDone || isPortrait()) return wallDone;
+    wallDone = Promise.all([sea.loadOutside(), ...WALL.map((P) => loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
       const root = gltf.scene, g = new THREE.Group(), inner = new THREE.Group(); inner.add(root); g.add(inner);
       root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material.map) o.material.map.anisotropy = ANISO; } });
       let b = new THREE.Box3().setFromObject(root, true); const sz = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
@@ -805,10 +808,12 @@ export function loadModels() {
       b = new THREE.Box3().setFromObject(g, true);
       g.position.set(P.pos[0], P.pos[1], WIN.z + 0.004 - b.min.z); freeze(g); bumpShadows(3);
       if (P.key) interactive(P.key, [g], () => ACTIONS.wall(g));
-    }).catch(() => {});
-  }
+    }).catch(() => {}))]).then(() => renderer.compileAsync(scene, camera)).catch(() => {});
+    return wallDone;
+  };
+  loadRoom(); addEventListener('resize', loadRoom);
   for (const P of PROPS) {
-    loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
+    jobs.push(loader.loadAsync(`assets/models/${P.dir}/model.glb`).then((gltf) => {
       const root = gltf.scene;
       if (P.keep) { const keep = root.getObjectByName(P.keep); root.children.slice().forEach((c) => { if (c !== keep) root.remove(c); }); if (keep) keep.position.set(0, keep.position.y, 0); }
       root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material.map) o.material.map.anisotropy = ANISO; if (P.tame) { o.material.metalness *= P.tame; o.material.envMapIntensity = P.tame; } } });
@@ -826,6 +831,7 @@ export function loadModels() {
         const c = new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3()); chestGlow.position.set(c.x, box.max.y * 0.85, c.z);
       }
       if (key) interactive(key, [g], () => ACTIONS[key](g));
-    }).catch(() => {});
+    }).catch(() => {}));
   }
+  return Promise.all(jobs);
 }

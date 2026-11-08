@@ -182,15 +182,15 @@ export function buildWindow(scene) {
   const out = new THREE.Group(); scene.add(out);
   const sky = new THREE.Mesh(new THREE.SphereGeometry(22, 48, 24), skyMaterial(uniforms)); sky.position.set(WIN.x, 0, -26); sky.renderOrder = 10; out.add(sky);
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(70, 46, 1, 1), seaMaterial(uniforms)); sea.rotation.x = -Math.PI / 2; sea.position.set(WIN.x, SEA_Y, -3 - 23); sea.renderOrder = 9; out.add(sea);
-  const lamp = shipLamp(); let boat = null;
+  const lamp = shipLamp(); let boat = null, outside = null;
   const loader = gltfLoader();
-  for (const v of VIEWS) {
-    v.group = new THREE.Group(); v.group.visible = false; out.add(v.group); v.ready = !v.optional;
-    v.models.reduce((p, M) => p.then(() => loader.loadAsync(`assets/models/${M.dir}/model.glb`)).then((gltf) => {
+  for (const v of VIEWS) { v.group = new THREE.Group(); v.group.visible = false; out.add(v.group); v.ready = !v.optional; }
+  const loadOutside = () => outside || (outside = Promise.all(VIEWS.map((v) => {
+    return v.models.reduce((p, M) => p.then(() => loader.loadAsync(`assets/models/${M.dir}/model.glb`)).then((gltf) => {
       const o = place(gltf.scene, M, v.group); v.ready = true;
       if (M.ship) { boat = o; const z = o.userData.size, lx = z.x >= z.z; boat.add(lamp); lamp.position.set(lx ? -z.x * 0.42 : 0, z.y * 0.36, lx ? 0 : -z.z * 0.42); lamp.scale.setScalar(0.07 / boat.scale.x); }
     }).catch(() => {}), Promise.resolve());
-  }
+  })));
 
   const moonLight = new THREE.SpotLight(0x8fa6d6, 0, 6, 0.5, 1, 1.2);
   moonLight.position.set(WIN.x - 0.35, WIN.spring + 0.5, WIN.z - 1.2); moonLight.target.position.set(WIN.x + 0.25, 0, WIN.z + 1.3);
@@ -205,6 +205,7 @@ export function buildWindow(scene) {
   apply(cur);
   return {
     pickables: [pick, ...shutters],
+    loadOutside,
     get view() { return cur.key; },
     cycle() {
       if (swapping) return Promise.resolve(); swapping = true;
