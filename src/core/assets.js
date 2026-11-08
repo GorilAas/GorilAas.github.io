@@ -40,9 +40,15 @@ export async function loadStick() {
       if (o.name && o.name.startsWith('_D_')) { const q = o.quaternion; q.set(0, q.y, 0, q.w).normalize(); }
       if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
     });
-    const g = new THREE.Group(); g.add(root); g.scale.setScalar(1.75); g.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(g); root.position.y -= box.min.y / 1.75;
-    g.updateMatrixWorld(true); const top = new THREE.Box3().setFromObject(g).max.y;
+    const g = new THREE.Group(), pivot = new THREE.Group(); pivot.add(root); g.add(pivot); g.scale.setScalar(1.75); g.updateMatrixWorld(true);
+    const ring = () => {
+      const b = new THREE.Box3().setFromObject(g, true), v = new THREE.Vector3(), r = new THREE.Box3();
+      g.traverse((o) => { if (!o.isMesh) return; const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); if (v.y > b.max.y - 0.02) r.expandByPoint(v); } });
+      return r.getCenter(v);
+    };
+    const box = new THREE.Box3().setFromObject(g, true), tc = ring();
+    pivot.position.set(-tc.x / 1.75, -box.min.y / 1.75, -tc.z / 1.75);
+    g.updateMatrixWorld(true); const top = new THREE.Box3().setFromObject(g, true).max.y;
     ASSETS.stick = g; ASSETS.stickTop = top;
   } catch (e) {}
 }

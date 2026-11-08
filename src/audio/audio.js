@@ -11,6 +11,7 @@ export const audio = {
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; this.buf = b;
       const s = this.src(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
       f.type = 'lowpass'; f.frequency.value = 260; g.gain.value = 0.05; s.connect(f).connect(g).connect(this.master); s.start();
+      this.loadLeaves();
       const loop = () => { if (!this.ctx) return; this.crackle(0.008 + Math.random() * 0.025); setTimeout(loop, 180 + Math.random() * 1200); }; loop();
     } catch (e) { this.ctx = null; }
   },
@@ -41,8 +42,22 @@ export const audio = {
     f.type = 'highpass'; f.frequency.value = 1500 + Math.random() * 3000; this.env(g, t, 0.002, v, 0.02 + Math.random() * 0.05);
     s.connect(f).connect(g).connect(this.master); s.start(t, Math.random()); s.stop(t + 0.1);
   },
+  loadLeaves() {
+    this.leaves = []; this.lastLeaf = -1;
+    [1, 2, 3, 4].forEach((n) => fetch(`assets/audio/sfx/folha-${n}.mp3`).then((r) => r.arrayBuffer()).then((b) => this.ctx.decodeAudioData(b)).then((d) => this.leaves.push(d)).catch(() => {}));
+  },
   flip() {
-    if (!this.ctx) return; const t = this.ctx.currentTime, s = this.src(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
+    if (!this.ctx) return;
+    if (this.leaves && this.leaves.length) {
+      let i = Math.floor(Math.random() * this.leaves.length);
+      if (i === this.lastLeaf && this.leaves.length > 1) i = (i + 1) % this.leaves.length;
+      this.lastLeaf = i;
+      const t = this.ctx.currentTime, s = this.ctx.createBufferSource(), g = this.ctx.createGain(), p = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+      s.buffer = this.leaves[i]; s.playbackRate.value = 0.94 + Math.random() * 0.12; g.gain.value = 0.75 + Math.random() * 0.2;
+      let n = s.connect(g); if (p) { p.pan.value = (Math.random() - 0.5) * 0.5; n = n.connect(p); } n.connect(this.master); s.start(t);
+      return;
+    }
+    const t = this.ctx.currentTime, s = this.src(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
     f.type = 'bandpass'; f.Q.value = 0.7; f.frequency.setValueAtTime(700, t); f.frequency.exponentialRampToValueAtTime(3200, t + 0.35);
     this.env(g, t, 0.07, 0.32, 0.45); s.connect(f).connect(g).connect(this.master); s.start(t, Math.random()); s.stop(t + 0.6);
     setTimeout(() => this.crackle(0.08), 420);

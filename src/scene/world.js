@@ -36,6 +36,36 @@ export const bumpShadows = (n = 2) => { shadowFrames = Math.max(shadowFrames, n)
 export const isPortrait = () => innerWidth / innerHeight < 0.8;
 export const freeze = (o) => { o.updateMatrixWorld(true); o.traverse((c) => { c.matrixAutoUpdate = false; }); };
 export const freezeKids = (o) => { o.updateMatrixWorld(true); o.traverse((c) => { if (c !== o) c.matrixAutoUpdate = false; }); };
+export const SUPPORTS = [];
+const upRay = new THREE.Raycaster(), downRay = new THREE.Raycaster(), V_UP = new THREE.Vector3(0, 1, 0), V_DOWN = new THREE.Vector3(0, -1, 0);
+function supportAt(x, z, top) {
+  downRay.set(new THREE.Vector3(x, top, z), V_DOWN);
+  for (const h of downRay.intersectObjects(SUPPORTS, false)) {
+    const a = h.object.userData.alphaPix;
+    if (a && h.uv) { const px = Math.min(a.w - 1, Math.floor(h.uv.x * a.w)), py = Math.min(a.h - 1, Math.floor((1 - h.uv.y) * a.h)); if (a.d[(py * a.w + px) * 4] < 128) continue; }
+    return h;
+  }
+  return null;
+}
+export function restGap(obj, skip = []) {
+  obj.updateMatrixWorld(true);
+  const meshes = []; obj.traverse((o) => { if (o.isMesh && !skip.includes(o)) meshes.push(o); });
+  const b = new THREE.Box3().setFromObject(obj, true), n = 40, o = new THREE.Vector3();
+  let gap = Infinity, on = null;
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) {
+    o.set(THREE.MathUtils.lerp(b.min.x, b.max.x, i / n), b.min.y - 1, THREE.MathUtils.lerp(b.min.z, b.max.z, j / n));
+    upRay.set(o, V_UP); const h = upRay.intersectObjects(meshes, false)[0]; if (!h) continue;
+    const s = supportAt(o.x, o.z, b.max.y + 1), g = h.point.y - (s ? s.point.y : 0);
+    if (g < gap) { gap = g; on = s ? s.object : null; }
+  }
+  return { gap, on };
+}
+export function settle(obj, carry = [], skip = []) {
+  const { gap, on } = restGap(obj, skip); if (!isFinite(gap)) return;
+  for (const o of [obj, ...carry]) { o.position.y -= gap; o.updateMatrix(); o.updateMatrixWorld(true); }
+  if (on) (on.userData.riders || (on.userData.riders = [])).push(obj);
+  bumpShadows(3);
+}
 export const flare = { v: 0 };
 export let chestGlow;
 export const INTER = [], ibox = new THREE.Box3(), ihit = new THREE.Vector3();
@@ -66,23 +96,51 @@ export function showTip(it, cx, cy, ms) {
   clearTimeout(tipTimer); if (ms) tipTimer = setTimeout(hideTip, ms);
 }
 export function hideTip() { $('#tip').classList.add('off'); }
+function tipper(g) {
+  if (!g.userData.tip) {
+    g.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g, true), cx = (b.min.x + b.max.x) / 2, v = new THREE.Vector3(); let r = 0;
+    g.traverse((o) => { if (!o.isMesh) return; const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); if (v.y < b.min.y + 0.006) r = Math.max(r, Math.abs(v.x - cx)); } });
+    g.userData.tip = { p0: g.position.clone(), r0: g.rotation.z, r, ox: cx - g.position.x, oy: b.min.y - g.position.y };
+  }
+  const t = g.userData.tip;
+  return (th) => {
+    const s = Math.sign(th) || 1, px = t.p0.x + t.ox - s * t.r, py = t.p0.y + t.oy, dx = t.p0.x - px, dy = t.p0.y - py, c = Math.cos(th), sn = Math.sin(th);
+    g.position.set(px + dx * c - dy * sn, py + dx * sn + dy * c, t.p0.z); g.rotation.z = t.r0 + th;
+  };
+}
+function spinner(g) {
+  if (!g.userData.spin) {
+    g.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g, true), c = b.getCenter(new THREE.Vector3()), v = new THREE.Vector3(); let r = 0;
+    g.traverse((o) => { if (!o.isMesh) return; const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i += 3) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); r = Math.max(r, Math.hypot(v.x - c.x, v.z - c.z)); } });
+    const near = Math.max(0, r - Math.max(Math.abs(c.z) - HC / 2, Math.abs(c.x) - WC));
+    g.userData.spin = { p0: g.position.clone(), r0: g.rotation.y, c, r, lift: near > 0 ? BASE + 0.12 + 0.02 - b.min.y : 0.05 };
+  }
+  const t = g.userData.spin;
+  return (a, y) => {
+    const dx = t.p0.x - t.c.x, dz = t.p0.z - t.c.z, c = Math.cos(a), s = Math.sin(a);
+    g.position.set(t.c.x + dx * c + dz * s, t.p0.y + y, t.c.z - dx * s + dz * c); g.rotation.y = t.r0 + a;
+  };
+}
 export const ACTIONS = {
   candle: () => { audio.whoosh(); return gsap.fromTo(flare, { v: 1 }, { v: 0, duration: 1.8, ease: 'power2.out' }); },
   goblet: (g) => {
-    audio.clink();
-    return gsap.timeline({ onUpdate: bump }).to(g.rotation, { z: 0.16, duration: 0.12 }).to(g.rotation, { z: -0.12, duration: 0.16 }).to(g.rotation, { z: 0.07, duration: 0.16 }).to(g.rotation, { z: -0.03, duration: 0.16 }).to(g.rotation, { z: 0, duration: 0.2 });
+    audio.clink(); const tip = tipper(g), st = { a: 0 };
+    return gsap.timeline({ onUpdate: () => { tip(st.a); bump(); }, onComplete: () => tip(0) }).to(st, { a: 0.16, duration: 0.12 }).to(st, { a: -0.12, duration: 0.16 }).to(st, { a: 0.07, duration: 0.16 }).to(st, { a: -0.03, duration: 0.16 }).to(st, { a: 0, duration: 0.2 });
   },
   apple: (g) => {
-    audio.crunch(); const y0 = g.position.y;
-    return gsap.timeline({ onUpdate: bump }).to(g.position, { y: y0 + 0.16, duration: 0.22, ease: 'power2.out' }).to(g.position, { y: y0, duration: 0.45, ease: 'bounce.out' }).to(g.rotation, { y: g.rotation.y + Math.PI * 2, duration: 0.6, ease: 'power1.inOut' }, 0);
+    audio.crunch(); const y0 = g.position.y, r0 = g.rotation.y;
+    return gsap.timeline({ onUpdate: bump, onComplete: () => { g.position.y = y0; g.rotation.y = r0; } }).to(g.position, { y: y0 + 0.16, duration: 0.22, ease: 'power2.out' }).to(g.position, { y: y0, duration: 0.45, ease: 'bounce.out' }).to(g.rotation, { y: r0 + Math.PI * 2, duration: 0.6, ease: 'power1.inOut' }, 0);
   },
   penbox: (g) => {
-    audio.knock(); const y0 = g.position.y;
-    return gsap.timeline({ onUpdate: bump }).to(g.position, { y: y0 + 0.05, duration: 0.12, ease: 'power2.out' }).to(g.position, { y: y0, duration: 0.3, ease: 'bounce.out' }).to(g.rotation, { z: 0.06, duration: 0.1, yoyo: true, repeat: 3 }, 0);
+    audio.knock(); const tip = tipper(g), st = { a: 0, y: 0 };
+    return gsap.timeline({ onUpdate: () => { tip(st.a); g.position.y += st.y; bump(); }, onComplete: () => tip(0) })
+      .to(st, { y: 0.05, duration: 0.12, ease: 'power2.out' }).to(st, { y: 0, duration: 0.3, ease: 'bounce.out' })
+      .to(st, { a: 0.06, duration: 0.1 }, 0).to(st, { a: -0.04, duration: 0.12 }).to(st, { a: 0.02, duration: 0.1 }).to(st, { a: 0, duration: 0.1 });
   },
   dagger: (g) => {
-    audio.shing(); const y0 = g.position.y;
-    return gsap.timeline({ onUpdate: bump }).to(g.position, { y: y0 + 0.04, duration: 0.2 }).to(g.rotation, { y: g.rotation.y + Math.PI * 2, duration: 0.9, ease: 'power2.inOut' }, 0).to(g.position, { y: y0, duration: 0.25 }, 0.7);
+    audio.shing(); const sp = spinner(g), st = { a: 0, y: 0 };
+    return gsap.timeline({ onUpdate: () => { sp(st.a, st.y); bump(); }, onComplete: () => sp(0, 0) })
+      .to(st, { y: g.userData.spin.lift, duration: 0.3, ease: 'power2.out' }).to(st, { a: Math.PI * 2, duration: 0.9, ease: 'power2.inOut' }, 0.15).to(st, { y: 0, duration: 0.35, ease: 'power2.in' }, 0.95);
   },
   chest: (g) => {
     const lid = g.userData.lid; if (!lid) return;
@@ -107,9 +165,12 @@ export const ACTIONS = {
       .to(st, { a: Math.PI * 1.6, duration: 0.9, ease: 'power2.out' }).to(st, { a: 0, duration: 1.1, ease: 'power2.inOut' }, '+=0.4');
   },
   leaf: (m) => {
-    audio.flip(); const y0 = m.position.y, r0 = m.rotation.y;
-    return gsap.timeline({ onUpdate: bump }).to(m.position, { y: y0 + 0.07, duration: 0.35, ease: 'power2.out' }).to(m.rotation, { y: r0 + 0.12, z: 0.06, duration: 0.35 }, 0)
-      .to(m.position, { y: y0, duration: 0.6, ease: 'bounce.out' }).to(m.rotation, { y: r0, z: 0, duration: 0.6 }, '<');
+    audio.flip(); const y0 = m.position.y, r0 = m.rotation.y, riders = (m.userData.riders || []).filter((r) => r.parent === scene);
+    const its = INTER.filter((it) => it.objs.some((o) => riders.includes(o))); its.forEach((it) => { it.busy = true; });
+    riders.forEach((r) => m.attach(r)); const up = riders.length ? 0.025 : 0.07;
+    return gsap.timeline({ onUpdate: bump, onComplete: () => { m.position.y = y0; m.rotation.set(0, r0, 0); m.updateMatrixWorld(true); riders.forEach((r) => scene.attach(r)); its.forEach((it) => { it.busy = false; }); } })
+      .to(m.position, { y: y0 + up, duration: 0.35, ease: 'power2.out' }).to(m.rotation, { y: r0 + 0.12, duration: 0.35 }, 0)
+      .to(m.position, { y: y0, duration: 0.6, ease: 'bounce.out' }).to(m.rotation, { y: r0, duration: 0.6 }, '<');
   }
 };
 
@@ -145,6 +206,7 @@ export function init() {
   chestGlow = new THREE.PointLight(0xffc46b, 0, 1.4, 2); chestGlow.position.set(-0.35, 0.25, -1.75); scene.add(chestGlow);
 
   buildDesk(); buildCandle(); buildProps(); buildBook(); buildParticles(); buildLooseLeaves(); buildDrolleries();
+  const dk = scene.userData.desk; settle(dk.well, [dk.quill]); dk.quill.userData.y0 = dk.quill.position.y; settle(dk.scroll);
 
   const samples = SMALL ? 2 : PR >= 1.5 ? 2 : 4;
   const rt = new THREE.WebGLRenderTarget(innerWidth * PR, innerHeight * PR, { type: THREE.HalfFloatType, samples });
@@ -191,12 +253,12 @@ export function buildCandle() {
   gx.fillStyle = side; gx.fillRect(0, 0, 64, 256);
   const em = new THREE.CanvasTexture(grad); em.colorSpace = THREE.SRGBColorSpace;
   const wax = new THREE.MeshBasicMaterial({ map: em, color: 0x222222 });
-  const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.056, 0.062, 0.34, 40), wax);
-  candle.position.y = 0.062 + 0.17; candle.receiveShadow = true; g.add(candle);
+  const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.047, 0.051, 0.38, 40), wax);
+  candle.position.y = 0.022 + 0.19; candle.receiveShadow = true; g.add(candle);
   g.userData.wax = wax;
   for (const [a, y, l] of [[0.4, 0.33, 0.06], [2.2, 0.36, 0.09], [4.1, 0.31, 0.05]]) {
     const d = new THREE.Mesh(new THREE.CapsuleGeometry(0.011, l, 4, 8), wax);
-    d.position.set(Math.cos(a) * 0.056, y, Math.sin(a) * 0.056); g.add(d);
+    d.position.set(Math.cos(a) * 0.047, y, Math.sin(a) * 0.047); g.add(d);
   }
   const wick = new THREE.Mesh(new THREE.CylinderGeometry(0.0028, 0.0028, 0.03, 8), new THREE.MeshBasicMaterial({ color: 0x120a06 }));
   wick.position.y = 0.415; g.add(wick);
@@ -239,8 +301,8 @@ export function buildCandle() {
 export function buildProps() {
   const glass = new THREE.MeshPhysicalMaterial({ color: 0x120c10, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 2 });
   const prof = [[0, 0], [0.11, 0], [0.12, 0.02], [0.12, 0.085], [0.095, 0.115], [0.045, 0.128], [0.043, 0.158], [0.054, 0.163], [0.05, 0.172], [0, 0.172]].map(([x, y]) => new THREE.Vector2(x, y));
-  const well = new THREE.Mesh(new THREE.LatheGeometry(prof, 48), glass); well.position.set(1.62, 0, -0.62); well.castShadow = true; scene.add(well); freeze(well);
-  const quill = new THREE.Group(); quill.position.set(1.62, 0.15, -0.62); quill.rotation.set(-0.42, 0.5, -0.38); scene.add(quill);
+  const well = new THREE.Mesh(new THREE.LatheGeometry(prof, 48), glass); well.position.set(1.66, 0, -0.68); well.castShadow = true; scene.add(well); freeze(well);
+  const quill = new THREE.Group(); quill.position.set(1.66, 0.15, -0.68); quill.rotation.set(-0.42, 0.5, -0.38); scene.add(quill);
   const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.002, 0.62, 8), new THREE.MeshStandardMaterial({ color: 0xd8ccb0, roughness: 0.5 }));
   shaft.position.y = 0.26; quill.add(shaft);
   const fm = new THREE.MeshStandardMaterial({ map: featherTexture(), transparent: true, alphaTest: 0.25, side: THREE.DoubleSide, roughness: 0.8 });
@@ -256,9 +318,10 @@ export function buildProps() {
   const capT = new THREE.CanvasTexture(capc); capT.colorSpace = THREE.SRGBColorSpace; const capM = new THREE.MeshStandardMaterial({ map: capT, roughness: 0.9 });
   const scroll = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.72, 40), [parch, capM, capM]);
   scroll.rotation.set(0, 0.45, Math.PI / 2); scroll.position.set(1.55, 0.045, 0.62); scroll.castShadow = true; scroll.receiveShadow = true; scene.add(scroll);
-  const tie = new THREE.Mesh(new THREE.TorusGeometry(0.047, 0.007, 10, 40), new THREE.MeshStandardMaterial({ color: 0x8f1d16, roughness: 0.6 }));
-  tie.position.copy(scroll.position); tie.rotation.set(0, 0.45 + Math.PI / 2, 0); scene.add(tie); scroll.attach(tie); freezeKids(scroll);
+  const tie = new THREE.Mesh(new THREE.CylinderGeometry(0.0458, 0.0458, 0.022, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x8f1d16, roughness: 0.6, side: THREE.DoubleSide }));
+  tie.position.copy(scroll.position); tie.rotation.copy(scroll.rotation); scene.add(tie); scroll.attach(tie); freezeKids(scroll);
   interactive('scroll', [scroll], () => ACTIONS.scroll(scroll));
+  scene.userData.desk = { well, quill, scroll };
 }
 
 export const vid = (i, j) => i * (SEGZ + 1) + j;
@@ -698,12 +761,14 @@ export function buildLooseLeaves() {
     const pa = geo.attributes.position;
     for (let k = 0; k < pa.count; k++) {
       const u = pa.getX(k) / (w / 2), v = pa.getZ(k) / (h / 2);
-      pa.setY(k, 0.018 * Math.pow(Math.abs(u), 3) + 0.01 * Math.pow(Math.abs(v), 4) + 0.004 * Math.sin(u * 3 + v * 2));
+      pa.setY(k, 0.018 * Math.pow(Math.abs(u), 3) + 0.01 * Math.pow(Math.abs(v), 4) + 0.002 * (1 + Math.sin(u * 3 + v * 2)));
     }
     geo.computeVertexNormals();
     L.map.anisotropy = ANISO;
     const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: L.map, alphaMap: L.alpha, alphaTest: 0.5, roughness: 0.88, side: THREE.DoubleSide }));
     m.position.set(...L.pos); m.rotation.y = L.rot; m.castShadow = true; m.receiveShadow = true; scene.add(m);
+    const ac = mk(128, 128), ax = ac.getContext('2d'); ax.drawImage(L.alpha.image, 0, 0, 128, 128);
+    m.userData.alphaPix = { w: 128, h: 128, d: ax.getImageData(0, 0, 128, 128).data }; m.updateMatrixWorld(true); SUPPORTS.push(m);
     interactive(L.name, [m], () => ACTIONS.leaf(m));
   }
 }
@@ -718,9 +783,9 @@ export function loadModels() {
       root.rotation.set(...P.rot.map((d) => THREE.MathUtils.degToRad(d)));
       g.scale.setScalar(P.scale);
       g.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(g);
+      const box = new THREE.Box3().setFromObject(g, true);
       g.position.set(P.pos[0], P.pos[1] - box.min.y, P.pos[2]);
-      scene.add(g); freezeKids(g); bumpShadows(3);
+      scene.add(g); freezeKids(g); settle(g);
       const key = { ornate_medieval_dagger: 'dagger', brass_goblets: 'goblet', food_apple_01: 'apple', treasure_chest: 'chest', met_penbox: 'penbox' }[P.id];
       if (key === 'chest') {
         const lid = root.getObjectByName('treasure_chest_lid');

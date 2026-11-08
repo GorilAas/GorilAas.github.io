@@ -32,31 +32,29 @@ button{font:inherit;color:inherit}
 @keyframes ink{60%{filter:blur(1.5px)}to{opacity:1;filter:blur(0);transform:none}}
 @keyframes burn{0%{opacity:1;filter:none;transform:none}40%{opacity:1}100%{opacity:0;transform:translateY(-.55em) scale(.95);filter:blur(5px)}}
 @keyframes fadein{to{opacity:1}}
-#ignite{opacity:0;animation:fadein .9s 1.3s forwards;position:relative;display:flex;flex-direction:column;align-items:center;gap:.7rem;background:none;border:0;padding:.4rem 1rem;cursor:pointer;color:#d8c193}
-#ignite svg{width:54px;height:118px;overflow:visible}
+#ignite{opacity:0;animation:fadein .9s 1.3s forwards;position:relative;display:flex;flex-direction:column;align-items:center;gap:.55rem;background:none;border:0;padding:.4rem 1.2rem;cursor:pointer;color:#cdb58a}
+#ignite svg{width:78px;height:122px;overflow:visible;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}
 #ignite:focus-visible{outline:none}
-#ignite:focus-visible #ignite-label{color:#f0dfb4;border-color:#c4473b;border-bottom-width:2px}
-#ignite .wax{fill:#e3d3ad}
-#ignite .wax-shade{fill:#b39c70}
-#ignite .wick{stroke:#2a1a0e;stroke-width:1.6;stroke-linecap:round;fill:none}
-#ignite .fire{opacity:0;transform-origin:22px 22px;transition:opacity .35s}
-#ignite .fire path:first-child{fill:#ffb347}
-#ignite .fire path:last-child{fill:#fff1c9}
+#ignite .wick{stroke:#24160a;stroke-width:1.5;stroke-linecap:round;fill:none}
+#ignite .fire{opacity:0;transform-origin:42px 24px;transition:opacity .35s}
+#ignite .fire path:nth-of-type(1){fill:#ffb347}
+#ignite .fire path:nth-of-type(2){fill:#fff1c9}
 #ignite:hover:not(:disabled) .fire,#ignite:focus-visible .fire,#ignite.lit .fire{opacity:1;animation:flick .18s infinite alternate ease-in-out}
-@keyframes flick{from{transform:scale(.96,1) skewX(-2deg)}to{transform:scale(1.04,1.06) skewX(2deg)}}
-#ignite-label{font-size:1.05rem;border-bottom:1px solid rgba(196,71,59,.6);padding-bottom:.15rem;transition:color .2s,border-color .2s}
-#ignite:hover:not(:disabled) #ignite-label{color:#f0dfb4;border-color:#c4473b}
+#ignite-label{font-family:'IM Fell English SC',serif;font-size:1.08rem;letter-spacing:.09em;transition:color .3s,text-shadow .3s}
+#ignite:hover:not(:disabled) #ignite-label,#ignite:focus-visible #ignite-label{color:#f3dfae;text-shadow:0 0 14px rgba(255,190,100,.45)}
 #ignite:disabled{cursor:progress}
 #ignite:disabled svg{opacity:.45}
-#ignite:disabled #ignite-label{border-color:transparent;font-style:italic;color:#8f7a58}
+#ignite:disabled #ignite-label{font-family:'IM Fell English',serif;font-style:italic;letter-spacing:0;color:#8f7a58}
+@keyframes flick{from{transform:scale(.96,1) skewX(-2deg)}to{transform:scale(1.04,1.06) skewX(2deg)}}
 
 .hud{position:fixed;z-index:20;transition:opacity .8s ease}
 .hud.off{opacity:0;pointer-events:none}
 #topbar{top:1rem;left:1.2rem;z-index:40;display:flex;align-items:baseline;gap:1.6rem}
-#lang{display:flex;gap:.9rem}
-#lang button{background:none;border:0;cursor:pointer;padding:.15rem 0;font-size:.92rem;color:#9d8762;border-bottom:1px solid transparent;transition:color .2s}
+#lang{display:flex;gap:1.3rem}
+#lang button{position:relative;background:none;border:0;cursor:pointer;padding:.15rem 0;font-size:.92rem;color:#86704d;transition:color .2s}
+#lang button+button::before{content:"\00B7";position:absolute;left:-.82rem;color:#6b5a3e;pointer-events:none}
 #lang button:hover{color:#e7d3a6}
-#lang button[aria-pressed="true"]{color:#d9574b;border-bottom-color:rgba(217,87,75,.6)}
+#lang button[aria-pressed="true"]{color:#ecd8a8;font-style:italic}
 #lang .short{display:none}
 #sound{background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:.5rem;color:#b9a27a;font-size:.88rem;font-style:italic;padding:.15rem 0}
 #sound svg{width:20px;height:20px;flex:none}

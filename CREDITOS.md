@@ -28,7 +28,7 @@ Folhas de manuscrito:
 - Adaga medieval ornamentada, cálice de latão, baú do tesouro e maçã. https://polyhaven.com/models
 - Madeira de mesa gasta e couro marrom. https://polyhaven.com/textures
 
-## Músicas (Wikimedia Commons, cerca de 17 minutos em sequência)
+## Músicas (Wikimedia Commons, cerca de 16 minutos em sequência)
 1. **Santa Maria, Strela do Dia** (Cantiga de Santa Maria 100), Afonso X, séc. XIII. Intérprete: Makemi. Domínio público. https://commons.wikimedia.org/wiki/File:Santa_Maria.ogg
 2. **Chominciamento di gioia**, estampida italiana do séc. XIV (British Library, Add. 29987). Intérprete: Ririkuku. CC BY-SA 4.0. https://commons.wikimedia.org/wiki/File:Chominciamento_de_Gioia1.ogg
 3. **A chantar m'er de so qu'eu no volria**, Comtessa de Dia, séc. XII. Intérprete: Makemi. Domínio público. https://commons.wikimedia.org/wiki/File:A_Chantar2.ogg
@@ -36,7 +36,12 @@ Folhas de manuscrito:
 5. **O frondens virga**, Hildegarda de Bingen, séc. XII. Intérprete: Makemi. Domínio público. https://commons.wikimedia.org/wiki/File:O_frondens_2.ogg
 6. **Cantiga de Afonso X**, Fundación Joaquín Díaz. CC BY-SA 3.0. https://commons.wikimedia.org/wiki/File:Fundaci%C3%B3n_Joaqu%C3%ADn_D%C3%ADaz_-_ATO_00277_11_-_Cantiga_de_Alfonso_X.ogg
 
-As gravações foram só convertidas para MP3 e normalizadas em volume. Nome, intérprete e licença aparecem no site, ao parar o mouse sobre o nome da música.
+As gravações foram só convertidas para MP3 e normalizadas em volume. Os aplausos do público no fim de duas delas (1 e 2) foram cortados. Nome, intérprete e licença aparecem no site, ao parar o mouse sobre o nome da música.
+
+## Som das folhas (Wikimedia Commons, domínio público)
+Quatro trechos recortados de gravações reais de páginas sendo viradas, normalizados em volume. Os demais efeitos sonoros são sintetizados no próprio código.
+- **Turning a page**, gravação de planish (PDSounds). https://commons.wikimedia.org/wiki/File:Turning_a_page.ogg
+- **Old book**, gravação de cori (PDSounds). https://commons.wikimedia.org/wiki/File:Old_book.ogg
 
 ## Fontes tipográficas
 - **IM Fell English** e **IM Fell English SC**, por Igino Marini (SIL OFL 1.1), via Google Fonts.
